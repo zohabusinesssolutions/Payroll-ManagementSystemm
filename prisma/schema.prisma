@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums (PascalCase for consistency)
+enum Role {
+  USER
+  ADMIN
+}
+
+enum AccessScope {
+  SELF
+  ALL
+}
+
+enum AccessLevel {
+  READ
+  WRITE
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LEAVE
+  HALFDAY
+  LATE
+}
+
+enum BonusType {
+  RAMADAN
+  PERFORMANCE
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  DECLINED
+}
+
+enum LeaveType {
+  HALFDAY
+  FULLDAY
+}
+
+enum MaritalStatus {
+  MARRIED
+  DIVORCED
+  SEPARATED
+  WIDOWED
+  SINGLE
+}
+
+enum ProjectStatus {
+  STARTED
+  INPROGRESS
+  COMPLETED
+  INVOICED
+  RELEASED
+  CANCELLED
+}
+
+enum SalaryStatus {
+  PAID
+  UNPAID
+}
+
+enum ProjectMilestoneStatus {
+  PLANNED
+  INPROGRESS
+  PAUSED
+  DELAYED
+  COMPLETED
+  CANCELLED
+}
+
+// ================= Models =================
+
+model Department {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  description String?
+  users       User[]
+  permissions Permission[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("departments")
+}
+
+model Permission {
+  id           String       @id @default(cuid())
+  departmentId String
+  model        String
+  accessScope  AccessScope
+  accessLevel  AccessLevel
+  department   Department   @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@unique([departmentId, model, accessScope])
+  @@map("department_permissions")
+}
+
+model User {
+  id            String        @id @default(cuid())
+  name          String
+  email         String        @unique
+  phoneNo       String
+  password      String
+  maritalStatus MaritalStatus @default(SINGLE)
+  dateOfBirth   DateTime
+  address       String?       @db.Text
+  cnicNo        String        @unique
+  image         String?       @db.Text
+  emergencyContactDetails Json @default("{}")
+  departmentId  String
+  department    Department    @relation(fields: [departmentId], references: [id])
+  employee      Employee?     @relation("UserEmployee")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@map("users")
+}
+
+model Employee {
+  id            String          @id @default(cuid())
+  userId        String          @unique
+  joiningDate   DateTime
+  resignDate    DateTime?
+  designation   String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  deletedAt     DateTime?
+  user          User            @relation("UserEmployee", fields: [userId], references: [id], onDelete: Cascade)
+
+  salary        Salary?         @relation("EmployeeSalary")
+  leaveApplied  LeavesApplied[] @relation("EmployeeLeavesApplied")
+  employeeLeave EmployeeLeaves? @relation("EmployeeLeaveSummary")
+  attendance    Attendance[]    @relation("EmployeeAttendance")
+  salarySlip    SalarySlip[]    @relation("EmployeeSalarySlip")
+
+  @@map("employee")
+}
+
+model Attendance {
+  id           String            @id @default(cuid())
+  employeeId   String
+  date         DateTime
+  month        Int
+  inTime       DateTime?
+  outTime      DateTime?
+  workingHours String?
+  status       AttendanceStatus  @default(ABSENT)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  employee     Employee          @relation("EmployeeAttendance", fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, date])
+  @@map("attendance")
+}
+
+model EmployeeLeaves {
+  id              String    @id @default(cuid())
+  employeeId      String    @unique
+  leavesAvailable Float     @default(0)
+  leavesTaken     Float     @default(0)
+  totalLeaves     Float     @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+  employee        Employee  @relation("EmployeeLeaveSummary", fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("employeeLeaves")
+}
+
+model LeavesApplied {
+  id         String       @id @default(cuid())
+  employeeId String
+  leaveType  LeaveType
+  date       DateTime
+  status     LeaveStatus  @default(PENDING)
+  approvedOn DateTime?
+  reason     String?      @db.Text
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  employee   Employee     @relation("EmployeeLeavesApplied", fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, date])
+  @@map("leaveApplied")
+}
+
+model Salary {
+  id               String    @id @default(cuid())
+  employeeId       String    @unique
+  basicSalary      Float
+  perDaySalary     Float
+  fuelAllowance    Float
+  medicalAllowance Float
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+  employee         Employee  @relation("EmployeeSalary", fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("salary")
+}
+
+model SalarySlip {
+  id            String       @id @default(cuid())
+  employeeId    String
+  month         Int
+  year          Int
+  deduction     Json
+  amountPayable Float
+  bonus         Float        @default(0)
+  status        SalaryStatus @default(UNPAID)
+  bonusType     BonusType?
+  paidOn        DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  deletedAt     DateTime?
+  employee      Employee     @relation("EmployeeSalarySlip", fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, month, year])
+  @@map("salarySlip")
+}
+
+model Setting {
+  title String @id
+  value String
+
+  @@map("settings")
+}
+
+model Client {
+  id             String   @id @default(cuid())
+  name           String
+  country        String
+  email          String   @unique
+  phoneNo        String?
+  billingAddress String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  projectToClient Project[]
+
+  @@map("client")
+}
+
+model Project {
+  id        String        @id @default(cuid())
+  name      String
+  amount    Float
+  currency  String
+  clientId  String
+  status    ProjectStatus @default(STARTED)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  client     Client       @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  milestones Milestone[]
+
+  @@map("project")
+}
+
+model Milestone {
+  id          String                 @id @default(cuid())
+  projectId   String
+  description String?
+  employeeId  Json                   @default("[]")
+  name        String
+  startDate   DateTime?
+  endDate     DateTime?
+  deadline    DateTime?
+  status      ProjectMilestoneStatus @default(PLANNED)
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  project     Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("milestone")
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  amount      Float
+  month       Int
+  paidOn      DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("expense")
+}

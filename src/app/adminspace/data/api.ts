@@ -59,6 +59,13 @@ class ApiService {
     update: (id: string, data: any) => axiosService.patch(`/expense/${id}`, data),
     delete: (id: string) => axiosService.delete(`/expense/${id}`),
   };
+
+  payroll = {
+    getSummary: (query: { month?: number; year?: number } = {}) => {
+      const q = encodeQueryData(query);
+      return axiosService.get<any>(`/payroll/summary?${q}`);
+    },
+  };
 }
 const apiService = new ApiService();
 export default apiService;

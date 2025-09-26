@@ -133,6 +133,8 @@ model Employee {
   joiningDate   DateTime
   resignDate    DateTime?
   designation   String
+  location      String?
+  bankAccount   String?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   deletedAt     DateTime?
@@ -199,7 +201,7 @@ model Salary {
   employeeId       String    @unique
   basicSalary      Float
   perDaySalary     Float
-  fuelAllowance    Float
+  fuelAllowance    Float    // fuel in litres here, and fuel amount calculate acc to current price and stored in salary slip table 
   medicalAllowance Float
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt

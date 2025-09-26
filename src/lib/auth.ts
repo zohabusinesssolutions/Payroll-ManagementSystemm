@@ -22,7 +22,7 @@ export const authConfig: NextAuthOptions = {
           return null;
 
         const user: any = await prisma.user.findFirstOrThrow({
-          where: { email: credentials.email, deletedAt: null },
+          where: { email: credentials.email },
           include: { department: { include: { permissions: true } } }
         });
 

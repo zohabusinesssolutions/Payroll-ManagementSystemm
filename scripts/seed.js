@@ -109,7 +109,7 @@ async function seed() {
     const existingEmployees = await prisma.employee.count();
     // Calculate next employee number
     let nextEmployeeId = 1;
-    if (existingEmployees.length > 0) nextEmployeeId = lastNumber + 1
+    if (existingEmployees > 0) nextEmployeeId = existingEmployees + 1
     const employeeId = `${monthYearPrefix}${String(nextEmployeeId).padStart(3, '0')}`;
 
     // Create Employee record for the admin user

@@ -79,6 +79,7 @@ export async function calculatePayroll(
         date: true,
         status: true,
         workingHours: true,
+        inTime: true,
       },
     });
 
@@ -114,6 +115,9 @@ export async function calculatePayroll(
     // Calculate Sunday amount
     const sundayAmount = sundayCount * dailySalary;
 
+    // Calculate Sunday fuel amount
+    const sundayFuel = sundayCount * fuelRate;
+
     // Get leave records for the month
     const leaveRecords = await prisma.leavesApplied.findMany({
       where: {
@@ -140,19 +144,19 @@ export async function calculatePayroll(
         halfDayCount++;
       }
     });
+
+    // calculate half day from attendance that if user intime is after 10:15.
+    attendanceRecords.forEach((record) => {
+      if (record.status === AttendanceStatus.PRESENT) {
+        const inTime = record.inTime ? new Date(record.inTime) : null;
+        if (inTime && inTime.getHours() > 10 && inTime.getMinutes() > 15) {
+          halfDayCount++;
+        }
+      }
+    });
+    
     const leaveDeduction = leaveCount * dailySalary;
     const halfDayDeduction = halfDayCount * (dailySalary / 2);
-
-    // // Apply leave deductions
-    // const leavesAllowedSetting = await prisma.setting.findUnique({
-    //   where: { title: "LEAVES_ALLOWED" },
-    // });
-    // const totalLeavesAllowed = leavesAllowedSetting
-    //   ? parseFloat(leavesAllowedSetting.value)
-    //   : 0;  
-    // let extraLeaves
-    // if (leaveCount + (halfDayCount * 0.5) > totalLeavesAllowed) {
-    //   extraLeaves = (leaveCount + (halfDayCount * 0.5)) - totalLeavesAllowed;
 
     // For now, commission and loan deduction are set to 0
     // These can be enhanced later with proper models
@@ -163,6 +167,7 @@ export async function calculatePayroll(
     const netSalary =
       grossSalary +
       fuelAmount +
+      sundayFuel +
       commissionAmount +
       overtimeAmount +
       sundayAmount -
@@ -184,7 +189,7 @@ export async function calculatePayroll(
       overtimeAmount: Math.round(overtimeAmount * 100) / 100,
       sundayCount,
       sundayAmount: Math.round(sundayAmount * 100) / 100,
-      sundayFuel: 0, // As requested, keep empty for now
+      sundayFuel,
       leaveCount,
       leaveDeduction: Math.round(leaveDeduction * 100) / 100,
       halfDayCount,

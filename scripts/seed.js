@@ -73,6 +73,7 @@ async function seed() {
     //     },
     //   },
     // });
+
     // const financeDepartment = await prisma.department.upsert({
     //   where: { name: 'Finance' },
     //   update: {},
@@ -131,84 +132,84 @@ async function seed() {
     // });
 
     // Create 3 users
-    // const financeUser1 = await prisma.user.upsert({
-    //   where: { email: 'ali.khan@company.com' },
-    //   update: {},
-    //   create: {
-    //     email: 'ali.khan@company.com',
-    //     name: 'Ali Khan',
-    //     phoneNo: '03001234567',
-    //     password: hashPassword('finance123'),
-    //     dateOfBirth: new Date('1992-03-15'),
-    //     maritalStatus: 'MARRIED',
-    //     cnicNo: '42101-1234567-1',
-    //     departmentId: financeDepartment.id,
-    //     emergencyContactDetails: {
-    //       name: 'Sara Khan',
-    //       phone: '03007654321',
-    //       relationship: 'Wife',
-    //     },
-    //   },
-    // });
+    const financeUser1 = await prisma.user.upsert({
+      where: { email: 'ali.khan@company.com' },
+      update: {},
+      create: {
+        email: 'ali.khan@company.com',
+        name: 'Ali Khan',
+        phoneNo: '03001234567',
+        password: hashPassword('finance123'),
+        dateOfBirth: new Date('1992-03-15'),
+        maritalStatus: 'MARRIED',
+        cnicNo: '42101-1234567-1',
+        departmentId: financeDepartment.id,
+        emergencyContactDetails: {
+          name: 'Sara Khan',
+          phone: '03007654321',
+          relationship: 'Wife',
+        },
+      },
+    });
 
-    // const financeUser2 = await prisma.user.upsert({
-    //   where: { email: 'fatima.shaikh@company.com' },
-    //   update: {},
-    //   create: {
-    //     email: 'fatima.shaikh@company.com',
-    //     name: 'Fatima Shaikh',
-    //     phoneNo: '03121234567',
-    //     password: hashPassword('finance456'),
-    //     dateOfBirth: new Date('1995-07-20'),
-    //     maritalStatus: 'SINGLE',
-    //     cnicNo: '42201-2345678-2',
-    //     departmentId: financeDepartment.id,
-    //     emergencyContactDetails: {
-    //       name: 'Ahmed Shaikh',
-    //       phone: '03121239876',
-    //       relationship: 'Brother',
-    //     },
-    //   },
-    // });
+    const financeUser2 = await prisma.user.upsert({
+      where: { email: 'fatima.shaikh@company.com' },
+      update: {},
+      create: {
+        email: 'fatima.shaikh@company.com',
+        name: 'Fatima Shaikh',
+        phoneNo: '03121234567',
+        password: hashPassword('finance456'),
+        dateOfBirth: new Date('1995-07-20'),
+        maritalStatus: 'SINGLE',
+        cnicNo: '42201-2345678-2',
+        departmentId: financeDepartment.id,
+        emergencyContactDetails: {
+          name: 'Ahmed Shaikh',
+          phone: '03121239876',
+          relationship: 'Brother',
+        },
+      },
+    });
 
-    // const financeUser3 = await prisma.user.upsert({
-    //   where: { email: 'usman.malik@company.com' },
-    //   update: {},
-    //   create: {
-    //     email: 'usman.malik@company.com',
-    //     name: 'Usman Malik',
-    //     phoneNo: '03211234567',
-    //     password: hashPassword('finance789'),
-    //     dateOfBirth: new Date('1988-11-05'),
-    //     maritalStatus: 'MARRIED',
-    //     cnicNo: '42301-3456789-3',
-    //     departmentId: financeDepartment.id,
-    //     emergencyContactDetails: {
-    //       name: 'Ayesha Malik',
-    //       phone: '03217654321',
-    //       relationship: 'Wife',
-    //     },
-    //   },
-    // });
-    // console.log(`✅ Created/Updated user: ${financeUser1.name}`);
-    // console.log(`✅ Created/Updated user: ${financeUser2.name}`);
-    // console.log(`✅ Created/Updated user: ${financeUser3.name}`);
+    const financeUser3 = await prisma.user.upsert({
+      where: { email: 'usman.malik@company.com' },
+      update: {},
+      create: {
+        email: 'usman.malik@company.com',
+        name: 'Usman Malik',
+        phoneNo: '03211234567',
+        password: hashPassword('finance789'),
+        dateOfBirth: new Date('1988-11-05'),
+        maritalStatus: 'MARRIED',
+        cnicNo: '42301-3456789-3',
+        departmentId: financeDepartment.id,
+        emergencyContactDetails: {
+          name: 'Ayesha Malik',
+          phone: '03217654321',
+          relationship: 'Wife',
+        },
+      },
+    });
+    console.log(`✅ Created/Updated user: ${financeUser1.name}`);
+    console.log(`✅ Created/Updated user: ${financeUser2.name}`);
+    console.log(`✅ Created/Updated user: ${financeUser3.name}`);
     // console.log(`✅ Created/Updated user: ${adminUser.name}`);
 
     // Generate employee ID in format E[Month][Year][Number]
-    // let joiningDate = new Date();
-    // let month = String(joiningDate.getMonth() + 1).padStart(2, '0');
-    // let year = String(joiningDate.getFullYear()).slice(-2);
-    // let monthYearPrefix = `E${month}${year}`;
+    let joiningDate = new Date();
+    let month = String(joiningDate.getMonth() + 1).padStart(2, '0');
+    let year = String(joiningDate.getFullYear()).slice(-2);
+    let monthYearPrefix = `E${month}${year}`;
 
     // // Get existing employees count to determine next employee number
-    // let existingEmployees = await prisma.employee.count();
-    // // Calculate next employee number
-    // let nextEmployeeId = 1;
-    // if (existingEmployees > 0) nextEmployeeId = existingEmployees + 1
-    // let employeeId = `${monthYearPrefix}${String(nextEmployeeId).padStart(3, '0')}`;
+    let existingEmployees = await prisma.employee.count();
+    // Calculate next employee number
+    let nextEmployeeId = 1;
+    if (existingEmployees > 0) nextEmployeeId = existingEmployees + 1
+    let employeeId = `${monthYearPrefix}${String(nextEmployeeId).padStart(3, '0')}`;
 
-    // Create Employee record for the admin user
+    // // Create Employee record for the admin user
     // const adminEmployee = await prisma.employee.upsert({
     //   where: { userId: adminUser.id },
     //   update: {},
@@ -220,67 +221,67 @@ async function seed() {
     //   }
     // });
 
-    // const financeEmployee1 = await prisma.employee.upsert({
-    //   where: { userId: financeUser1.id },
-    //   update: {},
-    //   create: {
-    //     id: employeeId, 
-    //     userId: financeUser1.id,
-    //     joiningDate: new Date('2022-01-15'),
-    //     designation: 'Finance Officer',
-    //   },
-    // });
+    const financeEmployee1 = await prisma.employee.upsert({
+      where: { userId: financeUser1.id },
+      update: {},
+      create: {
+        id: employeeId, 
+        userId: financeUser1.id,
+        joiningDate: new Date('2022-01-15'),
+        designation: 'Finance Officer',
+      },
+    });
 
     // Generate employee ID in format E[Month][Year][Number]
-    // joiningDate = new Date();
-    // month = String(joiningDate.getMonth() + 1).padStart(2, '0');
-    // year = String(joiningDate.getFullYear()).slice(-2);
-    // monthYearPrefix = `E${month}${year}`;
+    joiningDate = new Date();
+    month = String(joiningDate.getMonth() + 1).padStart(2, '0');
+    year = String(joiningDate.getFullYear()).slice(-2);
+    monthYearPrefix = `E${month}${year}`;
 
-    // // Get existing employees count to determine next employee number
-    // existingEmployees = await prisma.employee.count();
-    // // Calculate next employee number
-    // nextEmployeeId = 1;
-    // if (existingEmployees > 0) nextEmployeeId = existingEmployees + 1
-    // employeeId = `${monthYearPrefix}${String(nextEmployeeId).padStart(3, '0')}`;
+    // Get existing employees count to determine next employee number
+    existingEmployees = await prisma.employee.count();
+    // Calculate next employee number
+    nextEmployeeId = 1;
+    if (existingEmployees > 0) nextEmployeeId = existingEmployees + 1
+    employeeId = `${monthYearPrefix}${String(nextEmployeeId).padStart(3, '0')}`;
 
-    // const financeEmployee2 = await prisma.employee.upsert({
-    //   where: { userId: financeUser2.id },
-    //   update: {},
-    //   create: {
-    //     id: employeeId,
-    //     userId: financeUser2.id,
-    //     joiningDate: new Date('2022-05-10'),
-    //     designation: 'Junior Accountant',
-    //   },
-    // });
+    const financeEmployee2 = await prisma.employee.upsert({
+      where: { userId: financeUser2.id },
+      update: {},
+      create: {
+        id: employeeId,
+        userId: financeUser2.id,
+        joiningDate: new Date('2022-05-10'),
+        designation: 'Junior Accountant',
+      },
+    });
 
     // Generate employee ID in format E[Month][Year][Number]
-    // joiningDate = new Date();
-    // month = String(joiningDate.getMonth() + 1).padStart(2, '0');
-    // year = String(joiningDate.getFullYear()).slice(-2);
-    // monthYearPrefix = `E${month}${year}`;
+    joiningDate = new Date();
+    month = String(joiningDate.getMonth() + 1).padStart(2, '0');
+    year = String(joiningDate.getFullYear()).slice(-2);
+    monthYearPrefix = `E${month}${year}`;
 
-    // // Get existing employees count to determine next employee number
-    // existingEmployees = await prisma.employee.count();
-    // // Calculate next employee number
-    // nextEmployeeId = 1;
-    // if (existingEmployees > 0) nextEmployeeId = existingEmployees + 1
-    // employeeId = `${monthYearPrefix}${String(nextEmployeeId).padStart(3, '0')}`;
+    // Get existing employees count to determine next employee number
+    existingEmployees = await prisma.employee.count();
+    // Calculate next employee number
+    nextEmployeeId = 1;
+    if (existingEmployees > 0) nextEmployeeId = existingEmployees + 1
+    employeeId = `${monthYearPrefix}${String(nextEmployeeId).padStart(3, '0')}`;
 
-    // const financeEmployee3 = await prisma.employee.upsert({
-    //   where: { userId: financeUser3.id },
-    //   update: {},
-    //   create: {
-    //     id: employeeId,
-    //     userId: financeUser3.id,
-    //     joiningDate: new Date('2023-02-01'),
-    //     designation: 'Senior Accountant',
-    //   },
-    // });
-    // console.log(`✅ Created/Updated employee record for: ${financeUser1.name}`);
-    // console.log(`✅ Created/Updated employee record for: ${financeUser2.name}`);
-    // console.log(`✅ Created/Updated employee record for: ${financeUser3.name}`);
+    const financeEmployee3 = await prisma.employee.upsert({
+      where: { userId: financeUser3.id },
+      update: {},
+      create: {
+        id: employeeId,
+        userId: financeUser3.id,
+        joiningDate: new Date('2023-02-01'),
+        designation: 'Senior Accountant',
+      },
+    });
+    console.log(`✅ Created/Updated employee record for: ${financeUser1.name}`);
+    console.log(`✅ Created/Updated employee record for: ${financeUser2.name}`);
+    console.log(`✅ Created/Updated employee record for: ${financeUser3.name}`);
 
     // console.log(`✅ Created/Updated employee record for: ${adminUser.name}`);
 
@@ -297,51 +298,51 @@ async function seed() {
     //   }
     // });
 
-    // const financeSalary1 = await prisma.salary.upsert({
-    //   where: { employeeId: financeEmployee1.id },
-    //   update: {},
-    //   create: {
-    //     employeeId: financeEmployee1.id,
-    //     basicSalary: 80000,
-    //     perDaySalary: 2666.67,
-    //     fuelAllowance: 12,
-    //     medicalAllowance: 4000,
-    //   },
-    // });
+    const financeSalary1 = await prisma.salary.upsert({
+      where: { employeeId: financeEmployee1.id },
+      update: {},
+      create: {
+        employeeId: financeEmployee1.id,
+        basicSalary: 80000,
+        perDaySalary: 2666.67,
+        fuelAllowance: 12,
+        medicalAllowance: 4000,
+      },
+    });
 
-    // const financeSalary2 = await prisma.salary.upsert({
-    //   where: { employeeId: financeEmployee2.id },
-    //   update: {},
-    //   create: {
-    //     employeeId: financeEmployee2.id,
-    //     basicSalary: 60000,
-    //     perDaySalary: 2000,
-    //     fuelAllowance: 10,
-    //     medicalAllowance: 3000,
-    //   },
-    // });
+    const financeSalary2 = await prisma.salary.upsert({
+      where: { employeeId: financeEmployee2.id },
+      update: {},
+      create: {
+        employeeId: financeEmployee2.id,
+        basicSalary: 60000,
+        perDaySalary: 2000,
+        fuelAllowance: 10,
+        medicalAllowance: 3000,
+      },
+    });
 
-    // const financeSalary3 = await prisma.salary.upsert({
-    //   where: { employeeId: financeEmployee3.id },
-    //   update: {},
-    //   create: {
-    //     employeeId: financeEmployee3.id,
-    //     basicSalary: 90000,
-    //     perDaySalary: 3000,
-    //     fuelAllowance: 13,
-    //     medicalAllowance: 4500,
-    //   },
-    // });
-    // console.log(`✅ Created salary record for: ${financeSalary1.name}`);
-    // console.log(`✅ Created salary record for: ${financeSalary2.name}`);
-    // console.log(`✅ Created salary record for: ${financeSalary3.name}`);
+    const financeSalary3 = await prisma.salary.upsert({
+      where: { employeeId: financeEmployee3.id },
+      update: {},
+      create: {
+        employeeId: financeEmployee3.id,
+        grossSalary: 90000,
+        perDaySalary: 3000,
+        fuelAllowance: 13,
+        medicalAllowance: 4500,
+      },
+    });
+    console.log(`✅ Created salary record for: ${financeSalary1.name}`);
+    console.log(`✅ Created salary record for: ${financeSalary2.name}`);
+    console.log(`✅ Created salary record for: ${financeSalary3.name}`);
     // console.log(`✅ Created salary record for: ${adminUser.name}`);
     // Create employee leaves record
 
-    // const leavesAllowedSetting = await prisma.setting.findUnique({
-    //   where: { title: 'LEAVES_ALLOWED' },
-    // });
-    // const leavesAllowed = leavesAllowedSetting ? parseFloat(leavesAllowedSetting.value) : 1.5;
+    const leavesAllowedSetting = await prisma.setting.findUnique({
+      where: { title: 'LEAVES_ALLOWED' },
+    });
+    const leavesAllowed = leavesAllowedSetting ? parseFloat(leavesAllowedSetting.value) : 1.5;
 
     // await prisma.employeeLeaves.upsert({
     //   where: { employeeId: 'E0925001' },
@@ -390,7 +391,7 @@ async function seed() {
     // console.log(`✅ Created employee leaves record for: ${financeLeaves2.name}`);
     // console.log(`✅ Created employee leaves record for: ${financeLeaves3.name}`);
 
-    // console.log(`✅ Created employee leaves record for: ${adminUser.name}`);
+    console.log(`✅ Created employee leaves record for: ${adminUser.name}`);
 
     // Helper function to get random status + timings
     // function getRandomAttendance(date) {
@@ -455,85 +456,85 @@ async function seed() {
     // }
     // console.log(`✅ Created attendance records for last 15 days for all employees`);
 
-    await prisma.leavesApplied.createMany({
-      data: [
-        // Employee 1 leaves
-        {
-          employeeId: 'E0925002',
-          leaveType: "FULLDAY",
-          date: new Date("2025-09-10"),
-          status: "APPROVED",
-          reason: "Family emergency",
-        },
-        {
-          employeeId: 'E0925002',
-           leaveType: "HALFDAY",
-          date: new Date("2025-09-12"),
-          status: "APPROVED",
-          reason: "Doctor appointment",
-        },
-        {
-          employeeId: 'E0925002',
-          leaveType: "HALFDAY",
-          date: new Date("2025-09-15"),
-          status: "APPROVED",
-          reason: "Short leave",
-        },
-        {
-          employeeId: 'E0925002',
-          leaveType: "HALFDAY",
-          date: new Date("2025-09-20"),
-          status: "APPROVED",
-          reason: "Personal work",
-        },
+    // await prisma.leavesApplied.createMany({
+    //   data: [
+    //     // Employee 1 leaves
+    //     {
+    //       employeeId: 'E0925002',
+    //       leaveType: "FULLDAY",
+    //       date: new Date("2025-09-10"),
+    //       status: "APPROVED",
+    //       reason: "Family emergency",
+    //     },
+    //     {
+    //       employeeId: 'E0925002',
+    //        leaveType: "HALFDAY",
+    //       date: new Date("2025-09-12"),
+    //       status: "APPROVED",
+    //       reason: "Doctor appointment",
+    //     },
+    //     {
+    //       employeeId: 'E0925002',
+    //       leaveType: "HALFDAY",
+    //       date: new Date("2025-09-15"),
+    //       status: "APPROVED",
+    //       reason: "Short leave",
+    //     },
+    //     {
+    //       employeeId: 'E0925002',
+    //       leaveType: "HALFDAY",
+    //       date: new Date("2025-09-20"),
+    //       status: "APPROVED",
+    //       reason: "Personal work",
+    //     },
 
-        // Employee 2 leaves
-        {
-          employeeId: 'E0925003',
-          leaveType: "FULLDAY",
-          date: new Date("2025-09-07"),
-          status: "DECLINED",
-          reason: "Sick leave",
-        },
-        {
-          employeeId: 'E0925003',
-          leaveType: "HALFDAY",
-          date: new Date("2025-09-09"),
-          status: "APPROVED",
-          reason: "Bank visit",
-        },
-        {
-          employeeId: 'E0925003',
-          leaveType: "HALFDAY",
-          date: new Date("2025-09-14"),
-          status: "APPROVED",
-          reason: "Family errand",
-        },
+    //     // Employee 2 leaves
+    //     {
+    //       employeeId: 'E0925003',
+    //       leaveType: "FULLDAY",
+    //       date: new Date("2025-09-07"),
+    //       status: "DECLINED",
+    //       reason: "Sick leave",
+    //     },
+    //     {
+    //       employeeId: 'E0925003',
+    //       leaveType: "HALFDAY",
+    //       date: new Date("2025-09-09"),
+    //       status: "APPROVED",
+    //       reason: "Bank visit",
+    //     },
+    //     {
+    //       employeeId: 'E0925003',
+    //       leaveType: "HALFDAY",
+    //       date: new Date("2025-09-14"),
+    //       status: "APPROVED",
+    //       reason: "Family errand",
+    //     },
 
-        // Employee 3 leaves
-        {
-          employeeId: 'E0925004',
-          leaveType: "FULLDAY",
-          date: new Date("2025-09-11"),
-          status: "APPROVED",
-          reason: "Travel",
-        },
-        {
-          employeeId: 'E0925004',
-          leaveType: "FULLDAY",
-          date: new Date("2025-09-18"),
-          status: "APPROVED",
-          reason: "Emergency",
-        },
-        {
-          employeeId: 'E0925004',
-          leaveType: "HALFDAY",
-          date: new Date("2025-09-19"),
-          status: "APPROVED",
-          reason: "Office work",
-        },
-      ],
-    });
+    //     // Employee 3 leaves
+    //     {
+    //       employeeId: 'E0925004',
+    //       leaveType: "FULLDAY",
+    //       date: new Date("2025-09-11"),
+    //       status: "APPROVED",
+    //       reason: "Travel",
+    //     },
+    //     {
+    //       employeeId: 'E0925004',
+    //       leaveType: "FULLDAY",
+    //       date: new Date("2025-09-18"),
+    //       status: "APPROVED",
+    //       reason: "Emergency",
+    //     },
+    //     {
+    //       employeeId: 'E0925004',
+    //       leaveType: "HALFDAY",
+    //       date: new Date("2025-09-19"),
+    //       status: "APPROVED",
+    //       reason: "Office work",
+    //     },
+    //   ],
+    // });
 
     console.log('🎉 Database seeding completed successfully!');
   } catch (error) {

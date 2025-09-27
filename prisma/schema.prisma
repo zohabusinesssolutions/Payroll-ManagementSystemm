@@ -166,6 +166,7 @@ model Attendance {
   @@map("attendance")
 }
 
+// is model ki need nhi he reason is that leaves allowed hi nhi hen or agar employee leave leta he to uski deduction hogi.
 model EmployeeLeaves {
   id              String    @id @default(cuid())
   employeeId      String    @unique
@@ -199,9 +200,8 @@ model LeavesApplied {
 model Salary {
   id               String    @id @default(cuid())
   employeeId       String    @unique
-  basicSalary      Float
-  perDaySalary     Float
-  fuelAllowance    Float    // fuel in litres here, and fuel amount calculate acc to current price and stored in salary slip table 
+  grossSalary      Float
+  fuelAllowance    Float    // fuel in litres here, and fuel amount calculate according to current price which is mentioned in setting table, and stored in salary slip table 
   medicalAllowance Float
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -216,11 +216,25 @@ model SalarySlip {
   employeeId    String
   month         Int
   year          Int
-  deduction     Json
-  amountPayable Float
-  bonus         Float        @default(0)
+  grossSalary   Float
+  fuelEntitlement Float
+  fuelAmount  Float
+  commissionOrAdditional  Float        @default(0)
+  overtimeHours Float        @default(0)
+  overtimeAmount Float       @default(0)
+  sunday Int       @default(0)
+  sundayAmount Float @default(0)
+  sundayFuel Float @default(0)
+  leaveCount    Int          @default(0)
+  halfDayCount  Int          @default(0)
+  leaveDeduction Float       @default(0)
+  halfDayDeduction Float     @default(0)
+  loanOrOtherDeduction Float @default(0)
+  netSalary Float
   status        SalaryStatus @default(UNPAID)
+  bonus   Float @default(0)
   bonusType     BonusType?
+  account     String?
   paidOn        DateTime?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt

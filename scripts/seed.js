@@ -31,105 +31,105 @@ async function seed() {
 
 
     // Create Administrator department with permissions
-    // const adminDepartment = await prisma.department.upsert({
-    //   where: { name: 'Administrator' },
-    //   update: {},
-    //   create: {
-    //     name: 'Administrator',
-    //     description: 'Administrator department with full system access',
-    //     permissions: {
-    //       create: [
-    //         {
-    //           model: 'Projects',
-    //           accessLevel: 'WRITE',
-    //           accessScope: 'ALL',
-    //         },
-    //         {
-    //           model: 'Finance',
-    //           accessLevel: 'WRITE',
-    //           accessScope: 'ALL',
-    //         },
-    //         {
-    //           model: 'Employee',
-    //           accessLevel: 'WRITE',
-    //           accessScope: 'ALL',
-    //         },
-    //         {
-    //           model: 'Clients',
-    //           accessLevel: 'WRITE',
-    //           accessScope: 'ALL',
-    //         },
-    //         {
-    //           model: 'Analytics',
-    //           accessLevel: 'WRITE',
-    //           accessScope: 'ALL',
-    //         },
-    //         {
-    //           model: 'Salary',
-    //           accessLevel: 'WRITE',
-    //           accessScope: 'ALL',
-    //         },
-    //       ],
-    //     },
-    //   },
-    // });
+    const adminDepartment = await prisma.department.upsert({
+      where: { name: 'Administrator' },
+      update: {},
+      create: {
+        name: 'Administrator',
+        description: 'Administrator department with full system access',
+        permissions: {
+          create: [
+            {
+              model: 'Projects',
+              accessLevel: 'WRITE',
+              accessScope: 'ALL',
+            },
+            {
+              model: 'Finance',
+              accessLevel: 'WRITE',
+              accessScope: 'ALL',
+            },
+            {
+              model: 'Employee',
+              accessLevel: 'WRITE',
+              accessScope: 'ALL',
+            },
+            {
+              model: 'Clients',
+              accessLevel: 'WRITE',
+              accessScope: 'ALL',
+            },
+            {
+              model: 'Analytics',
+              accessLevel: 'WRITE',
+              accessScope: 'ALL',
+            },
+            {
+              model: 'Salary',
+              accessLevel: 'WRITE',
+              accessScope: 'ALL',
+            },
+          ],
+        },
+      },
+    });
 
-    // const financeDepartment = await prisma.department.upsert({
-    //   where: { name: 'Finance' },
-    //   update: {},
-    //   create: {
-    //     name: 'Finance',
-    //     description: 'Finance department responsible for managing company finances',
-    //     permissions: {
-    //       create: [
-    //         {
-    //           model: 'Finance',
-    //           accessLevel: 'WRITE',
-    //           accessScope: 'ALL',
-    //         },
-    //         {
-    //           model: 'Salary',
-    //           accessLevel: 'WRITE',
-    //           accessScope: 'ALL',
-    //         },
-    //         {
-    //           model: 'Analytics',
-    //           accessLevel: 'READ',
-    //           accessScope: 'ALL',
-    //         },
-    //         {
-    //           model: 'Projects',
-    //           accessLevel: 'READ',
-    //           accessScope: 'ALL',
-    //         },
-    //       ],
-    //     },
-    //   },
-    // });
+    const financeDepartment = await prisma.department.upsert({
+      where: { name: 'Finance' },
+      update: {},
+      create: {
+        name: 'Finance',
+        description: 'Finance department responsible for managing company finances',
+        permissions: {
+          create: [
+            {
+              model: 'Finance',
+              accessLevel: 'WRITE',
+              accessScope: 'ALL',
+            },
+            {
+              model: 'Salary',
+              accessLevel: 'WRITE',
+              accessScope: 'ALL',
+            },
+            {
+              model: 'Analytics',
+              accessLevel: 'READ',
+              accessScope: 'ALL',
+            },
+            {
+              model: 'Projects',
+              accessLevel: 'READ',
+              accessScope: 'ALL',
+            },
+          ],
+        },
+      },
+    });
 
-    // console.log(`✅ Created/Updated department: ${financeDepartment.name}`);
+    console.log(`✅ Created/Updated department: ${financeDepartment.name}`);
 
 
     // Create Admin user
-    // const adminUser = await prisma.user.upsert({
-    //   where: { email: 'contact.syedjawad@gmail.com' },
-    //   update: {},
-    //   create: {
-    //     email: 'contact.syedjawad@gmail.com',
-    //     name: 'Syed Jawad',
-    //     phoneNo: '1234567890',
-    //     password: hashPassword('123456'),
-    //     dateOfBirth: new Date('1990-01-01'),
-    //     maritalStatus: 'SINGLE',
-    //     cnicNo: '12345-6789012-3',
-    //     departmentId: adminDepartment.id,
-    //     emergencyContactDetails: {
-    //       name: 'Emergency Contact',
-    //       phone: '0987654321',
-    //       relationship: 'Family'
-    //     }
-    //   }
-    // });
+    const adminUser = await prisma.user.upsert({
+      where: { email: 'contact.syedjawad@gmail.com' },
+      update: {},
+      create: {
+        email: 'contact.syedjawad@gmail.com',
+        name: 'Syed Jawad',
+        phoneNo: '1234567890',
+        password: hashPassword('123456'),
+        dateOfBirth: new Date('1990-01-01'),
+        maritalStatus: 'SINGLE',
+        cnicNo: '12345-6789012-3',
+        departmentId: adminDepartment.id,
+        emergencyContactDetails: {
+          name: 'Emergency Contact',
+          phone: '0987654321',
+          relationship: 'Family'
+        }
+      }
+    });
 
     // Create 3 users
     const financeUser1 = await prisma.user.upsert({
@@ -210,16 +210,29 @@ async function seed() {
     let employeeId = `${monthYearPrefix}${String(nextEmployeeId).padStart(3, '0')}`;
 
     // // Create Employee record for the admin user
-    // const adminEmployee = await prisma.employee.upsert({
-    //   where: { userId: adminUser.id },
-    //   update: {},
-    //   create: {
-    //     id: employeeId,
-    //     userId: adminUser.id,
-    //     joiningDate: joiningDate,
-    //     designation: 'System Administrator',
-    //   }
-    // });
+    const adminEmployee = await prisma.employee.upsert({
+      where: { userId: adminUser.id },
+      update: {},
+      create: {
+        id: employeeId,
+        userId: adminUser.id,
+        joiningDate: joiningDate,
+        designation: 'System Administrator',
+      }
+    });
+
+    // Generate employee ID in format E[Month][Year][Number]
+    joiningDate = new Date();
+    month = String(joiningDate.getMonth() + 1).padStart(2, '0');
+    year = String(joiningDate.getFullYear()).slice(-2);
+    monthYearPrefix = `E${month}${year}`;
+
+    // // Get existing employees count to determine next employee number
+    existingEmployees = await prisma.employee.count();
+    // Calculate next employee number
+    nextEmployeeId = 1;
+    if (existingEmployees > 0) nextEmployeeId = existingEmployees + 1
+    employeeId = `${monthYearPrefix}${String(nextEmployeeId).padStart(3, '0')}`;
 
     const financeEmployee1 = await prisma.employee.upsert({
       where: { userId: financeUser1.id },
@@ -283,29 +296,27 @@ async function seed() {
     console.log(`✅ Created/Updated employee record for: ${financeUser2.name}`);
     console.log(`✅ Created/Updated employee record for: ${financeUser3.name}`);
 
-    // console.log(`✅ Created/Updated employee record for: ${adminUser.name}`);
+    console.log(`✅ Created/Updated employee record for: ${adminUser.name}`);
 
     // Create salary record for the admin employee
-    // await prisma.salary.upsert({
-    //   where: { employeeId: adminEmployee.id },
-    //   update: {},
-    //   create: {
-    //     employeeId: adminEmployee.id,
-    //     basicSalary: 100000,
-    //     perDaySalary: 3333.33,
-    //     fuelAllowance: 10000,
-    //     medicalAllowance: 5000,
-    //   }
-    // });
+    await prisma.salary.upsert({
+      where: { employeeId: adminEmployee.id },
+      update: {},
+      create: {
+        employeeId: adminEmployee.id,
+        grossSalary: 150000,
+        fuelAllowance: 10000,
+        medicalAllowance: 5000,
+      }
+    });
 
     const financeSalary1 = await prisma.salary.upsert({
       where: { employeeId: financeEmployee1.id },
       update: {},
       create: {
         employeeId: financeEmployee1.id,
-        basicSalary: 80000,
-        perDaySalary: 2666.67,
-        fuelAllowance: 12,
+        grossSalary: 80000,
+        fuelEntitlement: 12,
         medicalAllowance: 4000,
       },
     });
@@ -315,9 +326,8 @@ async function seed() {
       update: {},
       create: {
         employeeId: financeEmployee2.id,
-        basicSalary: 60000,
-        perDaySalary: 2000,
-        fuelAllowance: 10,
+        grossSalary: 60000,
+        fuelEntitlement: 10,
         medicalAllowance: 3000,
       },
     });
@@ -328,15 +338,14 @@ async function seed() {
       create: {
         employeeId: financeEmployee3.id,
         grossSalary: 90000,
-        perDaySalary: 3000,
-        fuelAllowance: 13,
+        fuelAllowance: 8000,
         medicalAllowance: 4500,
       },
     });
-    console.log(`✅ Created salary record for: ${financeSalary1.name}`);
-    console.log(`✅ Created salary record for: ${financeSalary2.name}`);
-    console.log(`✅ Created salary record for: ${financeSalary3.name}`);
-    // console.log(`✅ Created salary record for: ${adminUser.name}`);
+    console.log(`✅ Created salary record for: ${financeUser1.name}`);
+    console.log(`✅ Created salary record for: ${financeUser2.name}`);
+    console.log(`✅ Created salary record for: ${financeUser3.name}`);
+    console.log(`✅ Created salary record for: ${adminUser.name}`);
     // Create employee leaves record
 
     const leavesAllowedSetting = await prisma.setting.findUnique({
@@ -391,150 +400,150 @@ async function seed() {
     // console.log(`✅ Created employee leaves record for: ${financeLeaves2.name}`);
     // console.log(`✅ Created employee leaves record for: ${financeLeaves3.name}`);
 
-    console.log(`✅ Created employee leaves record for: ${adminUser.name}`);
+    // console.log(`✅ Created employee leaves record for: ${adminUser.name}`);
 
     // Helper function to get random status + timings
-    // function getRandomAttendance(date) {
-    //   const statuses = ['PRESENT', 'ABSENT', 'LATE'];
-    //   const status = statuses[Math.floor(Math.random() * statuses.length)];
+    function getRandomAttendance(date) {
+      const statuses = ['PRESENT', 'ABSENT', 'LATE'];
+      const status = statuses[Math.floor(Math.random() * statuses.length)];
 
-    //   if (status === 'ABSENT') {
-    //     return {
-    //       inTime: null,
-    //       outTime: null,
-    //       workingHours: null,
-    //       status,
-    //     };
-    //   }
+      if (status === 'ABSENT') {
+        return {
+          inTime: null,
+          outTime: null,
+          workingHours: null,
+          status,
+        };
+      }
 
-    //   // Random inTime (9:00 - 10:00 AM)
-    //   const inHour = 9 + Math.floor(Math.random() * 2);
-    //   const inMinute = Math.floor(Math.random() * 60);
-    //   const inTime = new Date(date);
-    //   inTime.setHours(inHour, inMinute, 0, 0);
+      // Random inTime (9:00 - 10:00 AM)
+      const inHour = 9 + Math.floor(Math.random() * 2);
+      const inMinute = Math.floor(Math.random() * 60);
+      const inTime = new Date(date);
+      inTime.setHours(inHour, inMinute, 0, 0);
 
-    //   // Random outTime (5:00 - 6:00 PM)
-    //   const outHour = 17 + Math.floor(Math.random() * 2);
-    //   const outMinute = Math.floor(Math.random() * 60);
-    //   const outTime = new Date(date);
-    //   outTime.setHours(outHour, outMinute, 0, 0);
+      // Random outTime (5:00 - 6:00 PM)
+      const outHour = 17 + Math.floor(Math.random() * 2);
+      const outMinute = Math.floor(Math.random() * 60);
+      const outTime = new Date(date);
+      outTime.setHours(outHour, outMinute, 0, 0);
 
-    //   const workingHours = `${outHour - inHour}h`;
+      const workingHours = `${outHour - inHour}h`;
 
-    //   return { inTime, outTime, workingHours, status };
-    // }
+      return { inTime, outTime, workingHours, status };
+    }
 
-    // const employees = [financeEmployee1, financeEmployee2, financeEmployee3];
+    const employees = [financeEmployee1, financeEmployee2, financeEmployee3];
 
-    // // Last 15 days ka data
-    // for (const emp of employees) {
-    //   for (let i = 0; i < 15; i++) {
-    //     const date = new Date();
-    //     date.setDate(date.getDate() - i); // pichle 15 din
+    // Last 15 days ka data
+    for (const emp of employees) {
+      for (let i = 0; i < 15; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - i); // pichle 15 din
 
-    //     const { inTime, outTime, workingHours, status } = getRandomAttendance(date);
+        const { inTime, outTime, workingHours, status } = getRandomAttendance(date);
 
-    //     await prisma.attendance.upsert({
-    //       where: {
-    //         employeeId_date: {
-    //           employeeId: emp.id,
-    //           date,
-    //         },
-    //       },
-    //       update: {},
-    //       create: {
-    //         employeeId: emp.id,
-    //         date,
-    //         month: date.getMonth() + 1,
-    //         inTime,
-    //         outTime,
-    //         workingHours,
-    //         status,
-    //       },
-    //     });
-    //   }
-    // }
-    // console.log(`✅ Created attendance records for last 15 days for all employees`);
+        await prisma.attendance.upsert({
+          where: {
+            employeeId_date: {
+              employeeId: emp.id,
+              date,
+            },
+          },
+          update: {},
+          create: {
+            employeeId: emp.id,
+            date,
+            month: date.getMonth() + 1,
+            inTime,
+            outTime,
+            workingHours,
+            status,
+          },
+        });
+      }
+    }
+    console.log(`✅ Created attendance records for last 15 days for all employees`);
 
-    // await prisma.leavesApplied.createMany({
-    //   data: [
-    //     // Employee 1 leaves
-    //     {
-    //       employeeId: 'E0925002',
-    //       leaveType: "FULLDAY",
-    //       date: new Date("2025-09-10"),
-    //       status: "APPROVED",
-    //       reason: "Family emergency",
-    //     },
-    //     {
-    //       employeeId: 'E0925002',
-    //        leaveType: "HALFDAY",
-    //       date: new Date("2025-09-12"),
-    //       status: "APPROVED",
-    //       reason: "Doctor appointment",
-    //     },
-    //     {
-    //       employeeId: 'E0925002',
-    //       leaveType: "HALFDAY",
-    //       date: new Date("2025-09-15"),
-    //       status: "APPROVED",
-    //       reason: "Short leave",
-    //     },
-    //     {
-    //       employeeId: 'E0925002',
-    //       leaveType: "HALFDAY",
-    //       date: new Date("2025-09-20"),
-    //       status: "APPROVED",
-    //       reason: "Personal work",
-    //     },
+    await prisma.leavesApplied.createMany({
+      data: [
+        // Employee 1 leaves
+        {
+          employeeId: 'E0925002',
+          leaveType: "FULLDAY",
+          date: new Date("2025-09-10"),
+          status: "APPROVED",
+          reason: "Family emergency",
+        },
+        {
+          employeeId: 'E0925002',
+           leaveType: "HALFDAY",
+          date: new Date("2025-09-12"),
+          status: "APPROVED",
+          reason: "Doctor appointment",
+        },
+        {
+          employeeId: 'E0925002',
+          leaveType: "HALFDAY",
+          date: new Date("2025-09-15"),
+          status: "APPROVED",
+          reason: "Short leave",
+        },
+        {
+          employeeId: 'E0925002',
+          leaveType: "HALFDAY",
+          date: new Date("2025-09-20"),
+          status: "APPROVED",
+          reason: "Personal work",
+        },
 
-    //     // Employee 2 leaves
-    //     {
-    //       employeeId: 'E0925003',
-    //       leaveType: "FULLDAY",
-    //       date: new Date("2025-09-07"),
-    //       status: "DECLINED",
-    //       reason: "Sick leave",
-    //     },
-    //     {
-    //       employeeId: 'E0925003',
-    //       leaveType: "HALFDAY",
-    //       date: new Date("2025-09-09"),
-    //       status: "APPROVED",
-    //       reason: "Bank visit",
-    //     },
-    //     {
-    //       employeeId: 'E0925003',
-    //       leaveType: "HALFDAY",
-    //       date: new Date("2025-09-14"),
-    //       status: "APPROVED",
-    //       reason: "Family errand",
-    //     },
+        // Employee 2 leaves
+        {
+          employeeId: 'E0925003',
+          leaveType: "FULLDAY",
+          date: new Date("2025-09-07"),
+          status: "DECLINED",
+          reason: "Sick leave",
+        },
+        {
+          employeeId: 'E0925003',
+          leaveType: "HALFDAY",
+          date: new Date("2025-09-09"),
+          status: "APPROVED",
+          reason: "Bank visit",
+        },
+        {
+          employeeId: 'E0925003',
+          leaveType: "HALFDAY",
+          date: new Date("2025-09-14"),
+          status: "APPROVED",
+          reason: "Family errand",
+        },
 
-    //     // Employee 3 leaves
-    //     {
-    //       employeeId: 'E0925004',
-    //       leaveType: "FULLDAY",
-    //       date: new Date("2025-09-11"),
-    //       status: "APPROVED",
-    //       reason: "Travel",
-    //     },
-    //     {
-    //       employeeId: 'E0925004',
-    //       leaveType: "FULLDAY",
-    //       date: new Date("2025-09-18"),
-    //       status: "APPROVED",
-    //       reason: "Emergency",
-    //     },
-    //     {
-    //       employeeId: 'E0925004',
-    //       leaveType: "HALFDAY",
-    //       date: new Date("2025-09-19"),
-    //       status: "APPROVED",
-    //       reason: "Office work",
-    //     },
-    //   ],
-    // });
+        // Employee 3 leaves
+        {
+          employeeId: 'E0925004',
+          leaveType: "FULLDAY",
+          date: new Date("2025-09-11"),
+          status: "APPROVED",
+          reason: "Travel",
+        },
+        {
+          employeeId: 'E0925004',
+          leaveType: "FULLDAY",
+          date: new Date("2025-09-18"),
+          status: "APPROVED",
+          reason: "Emergency",
+        },
+        {
+          employeeId: 'E0925004',
+          leaveType: "HALFDAY",
+          date: new Date("2025-09-19"),
+          status: "APPROVED",
+          reason: "Office work",
+        },
+      ],
+    });
 
     console.log('🎉 Database seeding completed successfully!');
   } catch (error) {

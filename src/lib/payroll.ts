@@ -59,9 +59,14 @@ export async function calculatePayroll(
     }
 
     // Basic salary information
-    const grossSalary = employee.salary.basicSalary;
-    const fuelEntitlement = employee.salary.fuelAllowance || null;
-    const fuelAmount = fuelEntitlement ? fuelEntitlement * fuelRate : 0;
+    const grossSalary = employee.salary.grossSalary; 
+    const fuelEntitlement = employee.salary.fuelEntitlement || null;
+    let fuelAmount = 0;
+    if (fuelEntitlement === null) {
+      fuelAmount = employee.salary.fuelAllowance || 0;
+    } else {
+      fuelAmount = fuelEntitlement * fuelRate;
+    }
 
     // Get attendance records for the month
     const startDate = new Date(year, month - 1, 1);

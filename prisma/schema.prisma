@@ -201,7 +201,8 @@ model Salary {
   id               String    @id @default(cuid())
   employeeId       String    @unique
   grossSalary      Float
-  fuelAllowance    Float    // fuel in litres here, and fuel amount calculate according to current price which is mentioned in setting table, and stored in salary slip table 
+  fuelEntitlement  Float?
+  fuelAllowance    Float?    
   medicalAllowance Float
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -231,11 +232,11 @@ model SalarySlip {
   halfDayDeduction Float     @default(0)
   loanOrOtherDeduction Float @default(0)
   netSalary Float
-  status        SalaryStatus @default(UNPAID)
   bonus   Float @default(0)
   bonusType     BonusType?
   account     String?
   paidOn        DateTime?
+  status        SalaryStatus @default(UNPAID)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   deletedAt     DateTime?

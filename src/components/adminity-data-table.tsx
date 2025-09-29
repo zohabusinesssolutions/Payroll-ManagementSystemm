@@ -77,6 +77,11 @@ export interface TableActions<T> {
   onDelete?: (id: string) => void;
   onEdit?: (item: T) => void;
   onCreate?: () => void;
+  customActions?: Array<{
+    label: string;
+    onClick: (item: T) => void;
+    className?: string;
+  }>;
 }
 
 interface AdminityDataTableProps<T extends BaseTableData> {
@@ -227,6 +232,18 @@ export function AdminityDataTable<T extends BaseTableData>({
                   Edit
                 </DropdownMenuItem>
               )}
+              {actions?.customActions?.map((customAction, index) => (
+                <DropdownMenuItem
+                  key={index}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    customAction.onClick(item);
+                  }}
+                  className={customAction.className}
+                >
+                  {customAction.label}
+                </DropdownMenuItem>
+              ))}
               {actions?.onDelete && (
                 <DropdownMenuItem
                   onClick={(e) => {

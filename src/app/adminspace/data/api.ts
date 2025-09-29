@@ -65,6 +65,9 @@ class ApiService {
       const q = encodeQueryData(query);
       return axiosService.get<any>(`/payroll/summary?${q}`);
     },
+    generateSlip: async (data: { employeeId: string; month: number; year: number }) => {
+      return await axiosService.post(`/payroll/generate-slip`, data);
+    },
   };
 }
 const apiService = new ApiService();

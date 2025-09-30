@@ -1,8 +1,7 @@
 import prisma from "./prisma";
 import { AttendanceStatus } from "@prisma/client";
-import { getPayrollAdjustments, applyPayrollAdjustments } from "./payroll-adjustments";
 
-export interface PayrollCalculation {
+export interface RawPayrollCalculation {
   id: string;
   name: string;
   designation: string;
@@ -27,13 +26,14 @@ export interface PayrollCalculation {
 }
 
 /**
- * Calculate payroll for a specific employee for a given month and year
+ * Calculate raw payroll (without adjustments) for a specific employee for a given month and year
+ * This is used to compute deltas when admin makes edits
  */
-export async function calculatePayroll(
+export async function calculateRawPayroll(
   employeeId: string,
   month: number,
   year: number
-): Promise<PayrollCalculation | null> {
+): Promise<RawPayrollCalculation | null> {
   try {
     // Get employee with related data
     const employee = await prisma.employee.findUnique({
@@ -116,13 +116,13 @@ export async function calculatePayroll(
     const hourlySalary = dailySalary / 8;
 
     // Calculate overtime amount
-    let overtimeAmount = overtimeHours * hourlySalary;
+    const overtimeAmount = overtimeHours * hourlySalary;
 
     // Calculate Sunday amount
-    let sundayAmount = sundayCount * dailySalary;
+    const sundayAmount = sundayCount * dailySalary;
 
     // Calculate Sunday fuel amount
-    let sundayFuel = sundayCount * fuelRate;
+    const sundayFuel = sundayCount * fuelRate;
 
     // Get leave records for the month
     const leaveRecords = await prisma.leavesApplied.findMany({
@@ -161,46 +161,25 @@ export async function calculatePayroll(
       }
     });
     
-    let leaveDeduction = leaveCount * dailySalary;
-    let halfDayDeduction = halfDayCount * (dailySalary / 2);
+    const leaveDeduction = leaveCount * dailySalary;
+    const halfDayDeduction = halfDayCount * (dailySalary / 2);
 
     // For now, commission and loan deduction are set to 0
     // These can be enhanced later with proper models
-    let commissionAmount = 0;
-    let loanDeduction = 0;
+    const commissionAmount = 0;
+    const loanDeduction = 0;
 
-    // Get payroll adjustments for this employee, month, and year
-    const adjustments = await getPayrollAdjustments(employeeId, month, year);
-
-    // Apply adjustments to base calculated values
-    const baseValues = {
-      grossSalary,
-      overtimeHours,
-      overtimeAmount,
-      sundayCount,
-      sundayAmount,
-      sundayFuel,
-      leaveCount,
-      leaveDeduction,
-      halfDayCount,
-      halfDayDeduction,
-      commissionAmount,
-      loanDeduction,
-    };
-
-    const adjustedValues = applyPayrollAdjustments(baseValues, adjustments);
-
-    // Calculate net salary with adjustments
+    // Calculate net salary WITHOUT adjustments
     const netSalary =
       grossSalary +
       fuelAmount +
-      adjustedValues.sundayFuel +
-      adjustedValues.commissionAmount +
-      adjustedValues.overtimeAmount +
-      adjustedValues.sundayAmount -
-      adjustedValues.leaveDeduction -
-      adjustedValues.halfDayDeduction -
-      adjustedValues.loanDeduction;
+      sundayFuel +
+      commissionAmount +
+      overtimeAmount +
+      sundayAmount -
+      leaveDeduction -
+      halfDayDeduction -
+      loanDeduction;
 
     return {
       id: employee.id,
@@ -211,58 +190,22 @@ export async function calculatePayroll(
       fuelEntitlement,
       fuelRate,
       fuelAmount,
-      commissionAmount: adjustedValues.commissionAmount,
-      overtimeHours: Math.round(adjustedValues.overtimeHours * 100) / 100, // Round to 2 decimal places
-      overtimeAmount: Math.round(adjustedValues.overtimeAmount * 100) / 100,
-      sundayCount: adjustedValues.sundayCount,
-      sundayAmount: Math.round(adjustedValues.sundayAmount * 100) / 100,
-      sundayFuel: adjustedValues.sundayFuel,
-      leaveCount: adjustedValues.leaveCount,
-      leaveDeduction: Math.round(adjustedValues.leaveDeduction * 100) / 100,
-      halfDayCount: adjustedValues.halfDayCount,
-      halfDayDeduction: Math.round(adjustedValues.halfDayDeduction * 100) / 100,
-      loanDeduction: adjustedValues.loanDeduction,
+      commissionAmount,
+      overtimeHours: Math.round(overtimeHours * 100) / 100, // Round to 2 decimal places
+      overtimeAmount: Math.round(overtimeAmount * 100) / 100,
+      sundayCount,
+      sundayAmount: Math.round(sundayAmount * 100) / 100,
+      sundayFuel,
+      leaveCount,
+      leaveDeduction: Math.round(leaveDeduction * 100) / 100,
+      halfDayCount,
+      halfDayDeduction: Math.round(halfDayDeduction * 100) / 100,
+      loanDeduction,
       netSalary: Math.round(netSalary * 100) / 100,
       account: (employee as any).bankAccount || "UBL", // Default account
     };
   } catch (error) {
-    console.error("Error calculating payroll:", error);
+    console.error("Error calculating raw payroll:", error);
     return null;
-  }
-}
-
-/**
- * Calculate payroll for all employees for a given month and year
- */
-export const calculateAllPayroll = async(
-  month: number = new Date().getMonth() + 1,
-  year: number = new Date().getFullYear()
-): Promise<PayrollCalculation[]> => {
-  try {
-    // Get all active employees
-    const employees = await prisma.employee.findMany({
-      where: {
-        deletedAt: null,
-        resignDate: null, // Only active employees
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    // Calculate payroll for each employee
-    const payrollPromises = employees.map((employee) =>
-      calculatePayroll(employee.id, month, year)
-    );
-
-    const payrollResults = await Promise.all(payrollPromises);
-
-    // Filter out null results
-    return payrollResults.filter(
-      (result): result is PayrollCalculation => result !== null
-    );
-  } catch (error) {
-    console.error("Error calculating all payroll:", error);
-    return [];
   }
 }

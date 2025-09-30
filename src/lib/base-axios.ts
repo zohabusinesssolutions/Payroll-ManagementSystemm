@@ -28,6 +28,10 @@ class AxiosService {
         return this._axios.post(url, data,);
     }
 
+    public async put<T>(url: string, data: any): Promise<T | any> {
+        return this._axios.put(url, data);
+    }
+
     public async patch(url: string, data: any = {}): Promise<{ message: string; }> {
         return this._axios.patch(url, data);
     }

@@ -109,7 +109,7 @@ model Permission {
 model User {
   id            String        @id @default(cuid())
   name          String
-  email         String        @unique
+  email         String        
   phoneNo       String
   password      String
   maritalStatus MaritalStatus @default(SINGLE)
@@ -145,6 +145,7 @@ model Employee {
   employeeLeave EmployeeLeaves? @relation("EmployeeLeaveSummary")
   attendance    Attendance[]    @relation("EmployeeAttendance")
   salarySlip    SalarySlip[]    @relation("EmployeeSalarySlip")
+  payrollAdjustments PayrollAdjustments[] @relation("EmployeePayrollAdjustments")
 
   @@map("employee")
 }
@@ -203,7 +204,7 @@ model Salary {
   grossSalary      Float
   fuelEntitlement  Float?
   fuelAllowance    Float?    
-  medicalAllowance Float
+  medicalAllowance Float?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   deletedAt        DateTime?
@@ -244,6 +245,20 @@ model SalarySlip {
 
   @@unique([employeeId, month, year])
   @@map("salarySlip")
+}
+
+model PayrollAdjustments {
+  id         String   @id @default(cuid())
+  employeeId String
+  month      Int
+  year       Int
+  adjustments Json    // e.g. { overtimeHours: 3, sundayCount: 1 }
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  employee   Employee @relation("EmployeePayrollAdjustments", fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, month, year])
+  @@map("payroll_adjustments")
 }
 
 model Setting {

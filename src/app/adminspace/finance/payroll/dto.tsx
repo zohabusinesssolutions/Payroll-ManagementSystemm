@@ -33,11 +33,13 @@ export const payrollConfig = ({
   loading,
   mode,
   onCancel,
+  defaultValues,
 }: {
   onSubmit: (data: any) => any;
   loading: boolean;
   mode: "create" | "edit";
   onCancel: () => any;
+  defaultValues?: IPayroll;
 }): AdminityDrawerConfig => {
   return {
     title: mode === "create" ? "Add Payroll Entry" : "Edit Payroll Entry",
@@ -49,7 +51,7 @@ export const payrollConfig = ({
     side: "right",
     zodSchema: PayrollSchema,
     loading,
-    defaultValues: {
+    defaultValues: defaultValues || {
       name: "",
       designation: "",
       location: "",
@@ -114,7 +116,7 @@ export const payrollConfig = ({
         required: true,
       },
       {
-        name: "commission",
+        name: "commissionAmount",
         label: "Commission",
         type: "number",
         className: "w-full",
@@ -128,22 +130,8 @@ export const payrollConfig = ({
         defaultValue: 0,
       },
       {
-        name: "overtimeAmount",
-        label: "Overtime Amount",
-        type: "number",
-        className: "w-full",
-        defaultValue: 0,
-      },
-      {
-        name: "sundays",
+        name: "sundayCount",
         label: "Sundays",
-        type: "number",
-        className: "w-full",
-        defaultValue: 0,
-      },
-      {
-        name: "sundayAmount",
-        label: "Sunday Amount",
         type: "number",
         className: "w-full",
         defaultValue: 0,
@@ -165,20 +153,6 @@ export const payrollConfig = ({
       {
         name: "halfDayCount",
         label: "Half Day Count",
-        type: "number",
-        className: "w-full",
-        defaultValue: 0,
-      },
-      {
-        name: "leaveDeduction",
-        label: "Leave Deduction",
-        type: "number",
-        className: "w-full",
-        defaultValue: 0,
-      },
-      {
-        name: "halfdayDeduction",
-        label: "Half Day Deduction",
         type: "number",
         className: "w-full",
         defaultValue: 0,
@@ -213,6 +187,7 @@ export const payrollConfig = ({
 // Payroll type
 export interface IPayroll {
   id: string;
+  serial_no?: number; // Optional since it's added in frontend
   name: string;
   designation: string;
   location: string;

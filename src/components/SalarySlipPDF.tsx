@@ -1,337 +1,315 @@
-import React from 'react';
-import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer';
+import type React from "react"
+import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer"
 
-// Define styles for the PDF that match slip.tsx design
+// Brand palette to mimic the reference JPEG (max 5 colors)
+const BRAND_BLUE = "#3B82F6" // primary blue
+const BRAND_CYAN = "#22D3EE" // cyan accent (subtle use)
+const BRAND_MAGENTA = "#E91E63" // magenta/pink accent
+const NEUTRAL_DARK = "#0F172A" // slate-900
+const NEUTRAL_LIGHT = "#F3F4F6" // gray-100
+
 const styles = StyleSheet.create({
   page: {
-    flexDirection: 'column',
-    backgroundColor: '#ffffff',
+    flexDirection: "column",
+    backgroundColor: "#ffffff",
     fontSize: 10,
-    fontFamily: 'Helvetica',
+    fontFamily: "Helvetica",
+    borderWidth: 1, // thin border around the page
+    borderColor: NEUTRAL_DARK,
   },
-  // Header Section with Company Branding
-  headerSection: {
-    backgroundColor: '#f3f4f6', // gray-100
-    padding: 32,
-    position: 'relative',
-    minHeight: 120,
+
+  // Decorative header accents inspired by the reference
+  headerDecor: {
+    position: "relative",
+    minHeight: 110,
+    paddingTop: 16,
+    paddingBottom: 8,
+    paddingHorizontal: 32,
   },
-  // Company Logo and Name
-  companyLogo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
+  topBarLeft: {
+    position: "absolute",
+    left: 0,
+    top: 10,
+    width: 180,
+    height: 18,
+    backgroundColor: BRAND_BLUE,
+  },
+  topBarRight: {
+    position: "absolute",
+    right: 0,
+    top: 32,
+    width: 140,
+    height: 12,
+    backgroundColor: BRAND_CYAN,
+  },
+  topBarAngle: {
+    position: "absolute",
+    right: 28,
+    top: 0,
+    width: 90,
+    height: 24,
+    backgroundColor: BRAND_MAGENTA,
+  },
+
+  // Header content: big SALARY SLIP on the left, employee identity on the right
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+  },
+  headerLeft: {
+    flexDirection: "column",
+    gap: 6,
+  },
+  slipTitle: {
+    fontSize: 28,
+    color: BRAND_BLUE,
+    fontWeight: 700,
+    letterSpacing: 1,
+  },
+  slipSubId: {
+    marginTop: 2,
+    color: "#60A5FA", // light-blue text similar to reference number
+  },
+
+  headerRight: {
+    alignItems: "flex-end",
+  },
+  identityName: {
+    fontSize: 14,
+    color: BRAND_MAGENTA,
+    fontWeight: 700,
+  },
+  identityLines: {
+    marginTop: 4,
+    color: NEUTRAL_DARK,
+    textAlign: "right",
+  },
+
+  // Company block (top-left small brand)
+  companyBlock: {
+    marginTop: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   companyName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000000',
+    fontSize: 12,
+    color: NEUTRAL_DARK,
+    fontWeight: 700,
   },
-  companyTagline: {
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  companyTaglineText: {
-    fontSize: 14,
-    fontWeight: 600,
-  },
-  taglineIT: {
-    color: '#000000',
-  },
-  taglineService: {
-    color: '#fbbf24', // yellow-400
-  },
-  // PaySlip Header
-  payslipHeader: {
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-  },
-  payslipHeaderContainer: {
-    backgroundColor: '#000000',
-    color: '#ffffff',
-    paddingHorizontal: 24,
-    paddingVertical: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  payText: {
-    color: '#fbbf24', // yellow-400
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  slipText: {
-    color: '#ffffff',
-    fontSize: 20,
-    fontWeight: 'bold',
-    backgroundColor: '#000000',
-    paddingHorizontal: 8,
-  },
-  // Employee Information
+
+  // Employee info (kept from original, visually simplified to align with reference spacing)
   employeeSection: {
     paddingHorizontal: 32,
-    paddingVertical: 24,
-    flexDirection: 'row',
-    gap: 32,
+    paddingTop: 12,
+    paddingBottom: 8,
+    flexDirection: "row",
+    gap: 24,
   },
-  employeeColumn: {
-    flex: 1,
+  employeeColumn: { flex: 1 },
+  employeeRow: { flexDirection: "row", marginBottom: 8 },
+  employeeLabel: { width: 120, color: "#374151", fontWeight: 600 },
+  employeeValue: { flex: 1, color: "#374151" },
+
+  // Section header "pill" like the reference table header
+  sectionHeaderPill: {
+    marginTop: 12,
+    marginBottom: 6,
+    alignSelf: "flex-start",
+    backgroundColor: BRAND_BLUE,
+    color: "#ffffff",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    fontWeight: 700,
   },
-  employeeRow: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  employeeLabel: {
-    fontWeight: 600,
-    color: '#374151', // gray-800
-    width: 120,
-  },
-  employeeValue: {
-    color: '#374151', // gray-800
-    flex: 1,
-  },
-  // Earnings and Deductions Table
+
+  // Two-column main table wrapper (Earnings | Deductions)
   tableSection: {
     paddingHorizontal: 32,
-    paddingBottom: 32,
+    paddingBottom: 16,
   },
   mainTable: {
-    flexDirection: 'row',
+    flexDirection: "row",
     borderWidth: 1,
-    borderColor: '#d1d5db', // gray-300
+    borderColor: "#E5E7EB",
   },
-  // Earnings Section
-  earningsSection: {
-    flex: 1,
-  },
-  earningsHeader: {
-    backgroundColor: '#fbbf24', // yellow-400
-    textAlign: 'center',
-    paddingVertical: 12,
-  },
-  earningsHeaderContent: {
-    flexDirection: 'row',
-  },
-  serialHeader: {
-    width: 48,
-    backgroundColor: '#d1d5db', // gray-300
-    color: '#000000',
-    fontWeight: 'bold',
-    paddingVertical: 8,
-    textAlign: 'center',
-    borderRightWidth: 1,
-    borderRightColor: '#9ca3af', // gray-400
-  },
-  earningsHeaderTitle: {
-    flex: 1,
-    color: '#000000',
-    fontWeight: 'bold',
-    paddingVertical: 8,
-    textAlign: 'center',
-  },
-  earningsContent: {
-    backgroundColor: '#f3f4f6', // gray-100
-  },
-  earningsRow: {
-    flexDirection: 'row',
+
+  // Earnings
+  earningsSection: { flex: 1 },
+  earningsHeader: { paddingVertical: 0 }, // replaced by sectionHeaderPill
+  earningsContent: { backgroundColor: NEUTRAL_LIGHT },
+  row: {
+    flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: '#d1d5db', // gray-300
+    borderBottomColor: "#E5E7EB",
   },
-  earningsRowLast: {
-    flexDirection: 'row',
-    backgroundColor: '#e5e7eb', // gray-200
-  },
-  serialCell: {
+  cellSerial: {
     width: 48,
-    backgroundColor: '#d1d5db', // gray-300
-    textAlign: 'center',
-    paddingVertical: 12,
-    borderRightWidth: 1,
-    borderRightColor: '#9ca3af', // gray-400
+    textAlign: "center",
+    paddingVertical: 10,
+    backgroundColor: "#E5E7EB",
     fontWeight: 600,
+    borderRightWidth: 1,
+    borderRightColor: "#CBD5E1",
   },
-  earningsDescCell: {
+  cellDesc: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     borderRightWidth: 1,
-    borderRightColor: '#d1d5db', // gray-300
+    borderRightColor: "#E5E7EB",
   },
-  earningsAmountCell: {
-    width: 60,
-    textAlign: 'center',
-    paddingVertical: 12,
-    fontWeight: 600,
+  cellAmount: {
+    width: 70,
+    textAlign: "center",
+    paddingVertical: 10,
+    fontWeight: 700,
+    color: BRAND_MAGENTA, // magenta emphasis similar to invoice amounts
   },
-  earningsDescCellBold: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRightWidth: 1,
-    borderRightColor: '#d1d5db', // gray-300
-    fontWeight: 600,
-  },
-  earningsAmountCellBold: {
-    width: 60,
-    textAlign: 'center',
-    paddingVertical: 12,
-    fontWeight: 'bold',
-  },
-  // Deductions Section
+  rowHighlight: { backgroundColor: "#EAEFFB" },
+
+  // Deductions
   deductionsSection: {
     flex: 1,
     borderLeftWidth: 1,
-    borderLeftColor: '#d1d5db', // gray-300
+    borderLeftColor: "#E5E7EB",
   },
-  deductionsHeader: {
-    backgroundColor: '#fbbf24', // yellow-400
-    textAlign: 'center',
-    paddingVertical: 12,
+
+  // Summary box on the right, like invoice totals (mapped to salary fields)
+  summaryWrap: {
+    paddingHorizontal: 32,
+    paddingTop: 10,
+    alignItems: "flex-end",
   },
-  deductionsHeaderTitle: {
-    color: '#000000',
-    fontWeight: 'bold',
-    paddingVertical: 8,
-    textAlign: 'center',
+  summaryBox: {
+    width: 240,
+    borderTopWidth: 1,
+    borderColor: "#E5E7EB",
+    paddingTop: 8,
+    gap: 4,
   },
-  deductionsContent: {
-    backgroundColor: '#f3f4f6', // gray-100
-  },
-  deductionsRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#d1d5db', // gray-300
-  },
-  deductionsRowSpecial: {
-    flexDirection: 'row',
-    backgroundColor: '#e5e7eb', // gray-200
-  },
-  deductionsDescCell: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRightWidth: 1,
-    borderRightColor: '#d1d5db', // gray-300
-  },
-  deductionsAmountCell: {
-    width: 60,
-    textAlign: 'center',
-    paddingVertical: 12,
-    fontWeight: 600,
-  },
-  deductionsDescCellBold: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRightWidth: 1,
-    borderRightColor: '#d1d5db', // gray-300
-    fontWeight: 600,
-  },
-  deductionsAmountCellBold: {
-    width: 60,
-    textAlign: 'center',
-    paddingVertical: 12,
-    fontWeight: 'bold',
-  },
-  // HR Signature
+  summaryRow: { flexDirection: "row", justifyContent: "space-between" },
+  summaryLabel: { color: "#374151" },
+  summaryValue: { color: NEUTRAL_DARK, fontWeight: 700 },
+  summaryGrand: { fontWeight: 800 },
+
+  // Signature
   signatureSection: {
     paddingHorizontal: 32,
-    paddingBottom: 32,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    paddingTop: 18,
+    paddingBottom: 18,
+    flexDirection: "row",
+    justifyContent: "flex-end",
   },
-  signatureText: {
-    fontWeight: 600,
-    color: '#374151', // gray-800
-    textAlign: 'right',
-  },
-  // Footer
-  footer: {
-    backgroundColor: '#000000',
-    color: '#ffffff',
+  signatureText: { color: "#374151", fontWeight: 600 },
+
+  // Footer accents similar to reference
+  footerDecor: {
+    position: "relative",
+    minHeight: 60,
     paddingHorizontal: 32,
-    paddingVertical: 24,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    paddingBottom: 18,
+    justifyContent: "flex-end",
   },
-  footerLeft: {
-    fontSize: 9,
+  bottomBarLeft: {
+    position: "absolute",
+    left: 32,
+    bottom: 20,
+    width: 140,
+    height: 18,
+    backgroundColor: BRAND_MAGENTA,
   },
-  footerRight: {
-    fontSize: 9,
-    textAlign: 'right',
+  bottomBarRight: {
+    position: "absolute",
+    right: 32,
+    bottom: 8,
+    width: 180,
+    height: 12,
+    backgroundColor: NEUTRAL_DARK,
   },
-  footerText: {
-    color: '#fbbf24', // yellow-400
-    marginBottom: 2,
+  footerInfoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
-});
+  footerText: { color: BRAND_BLUE, fontSize: 9 },
+})
 
 interface SalarySlipData {
-  name: string;
-  designation: string;
-  location: string;
-  account: string;
-  grossSalary: number;
-  fuelEntitlement: number | null;
-  fuelRate: number;
-  fuelAmount: number;
-  commissionAmount: number;
-  overtimeHours: number;
-  overtimeAmount: number;
-  sundayCount: number;
-  sundayAmount: number;
-  sundayFuel: number;
-  leaveCount: number;
-  leaveDeduction: number;
-  halfDayCount: number;
-  halfDayDeduction: number;
-  loanDeduction: number;
-  netSalary: number;
-  totalEarnings: number;
-  totalDeductions: number;
-  monthName: string;
-  year: number;
-  companyName: string;
-  generatedDate: string;
-  id?: string;
-  month?: number;
+  name: string
+  designation: string
+  location: string
+  account: string
+  grossSalary: number
+  fuelEntitlement: number | null
+  fuelRate: number
+  fuelAmount: number
+  commissionAmount: number
+  overtimeHours: number
+  overtimeAmount: number
+  sundayCount: number
+  sundayAmount: number
+  sundayFuel: number
+  leaveCount: number
+  leaveDeduction: number
+  halfDayCount: number
+  halfDayDeduction: number
+  loanDeduction: number
+  netSalary: number
+  totalEarnings: number
+  totalDeductions: number
+  monthName: string
+  year: number
+  companyName: string
+  generatedDate: string
+  id?: string
+  month?: number
 }
 
 interface SalarySlipPDFProps {
-  data: SalarySlipData;
+  data: SalarySlipData
 }
 
 const SalarySlipPDF: React.FC<SalarySlipPDFProps> = ({ data }) => (
   <Document>
     <Page size="A4" style={styles.page}>
-      {/* Header Section with Company Branding */}
-      <View style={styles.headerSection}>
-        {/* Company Logo and Name */}
-        <View style={styles.companyLogo}>
-          <Text style={styles.companyName}>MARKSOF</Text>
+      {/* Header geometric accents */}
+      <View style={styles.headerDecor}>
+        <View style={styles.topBarLeft} />
+        <View style={styles.topBarRight} />
+        <View style={styles.topBarAngle} />
+
+        <View style={styles.headerContent}>
+          {/* Left: big title and ID-like line */}
+          <View style={styles.headerLeft}>
+            <Text style={styles.slipTitle}>SALARY SLIP</Text>
+            <Text style={styles.slipSubId}>
+              {"#"}
+              {data.id || "000000"}
+              {"  "}•{"  "}
+              {data.monthName} {data.year}
+            </Text>
+          </View>
+
+          {/* Right: employee identity like the magenta name block */}
+          <View style={styles.headerRight}>
+            <Text style={styles.identityName}>{data.name || "Employee Name"}</Text>
+            <Text style={styles.identityLines}>
+              {data.generatedDate || "Date"}
+              {"\n"}
+              {data.location || "Office Location"}
+            </Text>
+          </View>
         </View>
 
-        <View style={styles.companyTagline}>
-          <Text style={styles.companyTaglineText}>
-            <Text style={styles.taglineIT}>IT INNOVATION</Text>{' '}
-            <Text style={styles.taglineService}>AS A SERVICE</Text>
-          </Text>
+        {/* Small company mark under header, left-aligned */}
+        <View style={styles.companyBlock}>
+          <Text style={styles.companyName}>{data.companyName || "Company Name"}</Text>
         </View>
       </View>
 
-      {/* PaySlip Header */}
-      <View style={styles.payslipHeader}>
-        <View style={styles.payslipHeaderContainer}>
-          <Text style={styles.payText}>PAY</Text>
-          <Text style={styles.slipText}>SLIP</Text>
-        </View>
-      </View>
-
-      {/* Employee Information */}
+      {/* Employee info rows (kept same fields, condensed spacing) */}
       <View style={styles.employeeSection}>
         <View style={styles.employeeColumn}>
           <View style={styles.employeeRow}>
@@ -340,7 +318,7 @@ const SalarySlipPDF: React.FC<SalarySlipPDFProps> = ({ data }) => (
           </View>
           <View style={styles.employeeRow}>
             <Text style={styles.employeeLabel}>Employee ID :</Text>
-            <Text style={styles.employeeValue}>{data.id || 'N/A'}</Text>
+            <Text style={styles.employeeValue}>{data.id || "N/A"}</Text>
           </View>
           <View style={styles.employeeRow}>
             <Text style={styles.employeeLabel}>Job Title :</Text>
@@ -350,8 +328,10 @@ const SalarySlipPDF: React.FC<SalarySlipPDFProps> = ({ data }) => (
 
         <View style={styles.employeeColumn}>
           <View style={styles.employeeRow}>
-            <Text style={styles.employeeLabel}>Salary Date :</Text>
-            <Text style={styles.employeeValue}>{data.monthName}</Text>
+            <Text style={styles.employeeLabel}>Salary Month :</Text>
+            <Text style={styles.employeeValue}>
+              {data.monthName} {data.year}
+            </Text>
           </View>
           <View style={styles.employeeRow}>
             <Text style={styles.employeeLabel}>Mode of Payment :</Text>
@@ -364,104 +344,100 @@ const SalarySlipPDF: React.FC<SalarySlipPDFProps> = ({ data }) => (
         </View>
       </View>
 
-      {/* Earnings and Deductions Table */}
+      {/* Tables with pill headers like the reference */}
       <View style={styles.tableSection}>
+        <Text style={styles.sectionHeaderPill}>EARNINGS</Text>
         <View style={styles.mainTable}>
-          {/* Earnings Section */}
           <View style={styles.earningsSection}>
-            {/* Earnings Header */}
-            <View style={styles.earningsHeader}>
-              <View style={styles.earningsHeaderContent}>
-                <Text style={styles.serialHeader}>S.L</Text>
-                <Text style={styles.earningsHeaderTitle}>EARNINGS</Text>
-              </View>
-            </View>
-
-            {/* Earnings Rows */}
             <View style={styles.earningsContent}>
-              <View style={styles.earningsRow}>
-                <Text style={styles.serialCell}>01</Text>
-                <Text style={styles.earningsDescCell}>Basic Salary</Text>
-                <Text style={styles.earningsAmountCell}>{data.grossSalary.toLocaleString()}</Text>
+              <View style={styles.row}>
+                <Text style={styles.cellSerial}>01</Text>
+                <Text style={styles.cellDesc}>Basic Salary</Text>
+                <Text style={styles.cellAmount}>{data.grossSalary.toLocaleString()}</Text>
               </View>
-              <View style={styles.earningsRow}>
-                <Text style={styles.serialCell}>02</Text>
-                <Text style={styles.earningsDescCell}>Fuel Allowance</Text>
-                <Text style={styles.earningsAmountCell}>{data.fuelAmount.toLocaleString()}</Text>
+              <View style={styles.row}>
+                <Text style={styles.cellSerial}>02</Text>
+                <Text style={styles.cellDesc}>Fuel Allowance</Text>
+                <Text style={styles.cellAmount}>{data.fuelAmount.toLocaleString()}</Text>
               </View>
-              <View style={styles.earningsRow}>
-                <Text style={styles.serialCell}>03</Text>
-                <Text style={styles.earningsDescCell}>Medical Allowance</Text>
-                <Text style={styles.earningsAmountCell}>{data.commissionAmount.toLocaleString()}</Text>
+              <View style={styles.row}>
+                <Text style={styles.cellSerial}>03</Text>
+                <Text style={styles.cellDesc}>Medical Allowance</Text>
+                <Text style={styles.cellAmount}>{data.commissionAmount.toLocaleString()}</Text>
               </View>
-              <View style={styles.earningsRow}>
-                <Text style={styles.serialCell}>04</Text>
-                <Text style={styles.earningsDescCell}>Bonus</Text>
-                <Text style={styles.earningsAmountCell}>{data.overtimeAmount.toLocaleString()}</Text>
+              <View style={[styles.row, styles.rowHighlight]}>
+                <Text style={styles.cellSerial}>04</Text>
+                <Text style={styles.cellDesc}>Bonus</Text>
+                <Text style={styles.cellAmount}>{data.overtimeAmount.toLocaleString()}</Text>
               </View>
-              <View style={styles.earningsRowLast}>
-                <Text style={styles.serialCell}>05</Text>
-                <Text style={styles.earningsDescCellBold}>Total Amount</Text>
-                <Text style={styles.earningsAmountCellBold}>{data.totalEarnings.toLocaleString()}</Text>
+              <View style={styles.row}>
+                <Text style={styles.cellSerial}>05</Text>
+                <Text style={styles.cellDesc}>Total Earnings</Text>
+                <Text style={styles.cellAmount}>{data.totalEarnings.toLocaleString()}</Text>
               </View>
             </View>
           </View>
 
-          {/* Deductions Section */}
           <View style={styles.deductionsSection}>
-            {/* Deductions Header */}
-            <View style={styles.deductionsHeader}>
-              <Text style={styles.deductionsHeaderTitle}>DEDUCTION</Text>
-            </View>
-
-            {/* Deductions Rows */}
-            <View style={styles.deductionsContent}>
-              <View style={styles.deductionsRow}>
-                <Text style={styles.deductionsDescCell}>Late Deduction</Text>
-                <Text style={styles.deductionsAmountCell}>{data.halfDayDeduction.toLocaleString()}</Text>
+            {/* Deductions column */}
+            <Text style={styles.sectionHeaderPill}>DEDUCTIONS</Text>
+            <View style={styles.earningsContent}>
+              <View style={styles.row}>
+                <Text style={styles.cellDesc}>Late Deduction</Text>
+                <Text style={styles.cellAmount}>{data.halfDayDeduction.toLocaleString()}</Text>
               </View>
-              <View style={styles.deductionsRow}>
-                <Text style={styles.deductionsDescCell}>Absent Deduction</Text>
-                <Text style={styles.deductionsAmountCell}>{data.leaveDeduction.toLocaleString()}</Text>
+              <View style={styles.row}>
+                <Text style={styles.cellDesc}>Absent Deduction</Text>
+                <Text style={styles.cellAmount}>{data.leaveDeduction.toLocaleString()}</Text>
               </View>
-              <View style={styles.deductionsRow}>
-                <Text style={styles.deductionsDescCell}>Including Tax</Text>
-                <Text style={styles.deductionsAmountCell}>{data.loanDeduction.toLocaleString()}</Text>
+              <View style={styles.row}>
+                <Text style={styles.cellDesc}>Including Tax</Text>
+                <Text style={styles.cellAmount}>{data.loanDeduction.toLocaleString()}</Text>
               </View>
-              <View style={styles.deductionsRow}>
-                <Text style={styles.deductionsDescCellBold}>Total Deduction</Text>
-                <Text style={styles.deductionsAmountCellBold}>{data.totalDeductions.toLocaleString()}</Text>
-              </View>
-              <View style={styles.deductionsRowSpecial}>
-                <Text style={styles.deductionsDescCellBold}>Amount Payable</Text>
-                <Text style={styles.deductionsAmountCellBold}>{data.netSalary.toLocaleString()}</Text>
+              <View style={[styles.row, styles.rowHighlight]}>
+                <Text style={styles.cellDesc}>Total Deductions</Text>
+                <Text style={styles.cellAmount}>{data.totalDeductions.toLocaleString()}</Text>
               </View>
             </View>
           </View>
         </View>
       </View>
 
-      {/* HR Signature */}
-      <View style={styles.signatureSection}>
-        <Text style={styles.signatureText}>Hr Sign</Text>
+      {/* Right-side summary box (mirrors invoice's subtotal/tax/total pattern) */}
+      <View style={styles.summaryWrap}>
+        <View style={styles.summaryBox}>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Total Earnings</Text>
+            <Text style={styles.summaryValue}>{data.totalEarnings.toLocaleString()}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Total Deductions</Text>
+            <Text style={styles.summaryValue}>{data.totalDeductions.toLocaleString()}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={[styles.summaryLabel, styles.summaryGrand]}>Net Salary</Text>
+            <Text style={[styles.summaryValue, styles.summaryGrand]}>{data.netSalary.toLocaleString()}</Text>
+          </View>
+        </View>
       </View>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <View style={styles.footerLeft}>
-          <Text style={styles.footerText}>Plot # LS16 Ground Floor</Text>
-          <Text style={styles.footerText}>Sector 5E, Orangi Town</Text>
-          <Text style={styles.footerText}>Karachi 75800, Pakistan</Text>
-        </View>
-        <View style={styles.footerRight}>
-          <Text style={styles.footerText}>www.maksof.com</Text>
-          <Text style={styles.footerText}>info@maksof.com</Text>
-          <Text style={styles.footerText}>(+92) 213-6661-104</Text>
+      {/* Signature (kept) */}
+      <View style={styles.signatureSection}>
+        <Text style={styles.signatureText}>HR Sign</Text>
+      </View>
+
+      {/* Footer with decorative bars and info */}
+      <View style={styles.footerDecor}>
+        <View style={styles.bottomBarLeft} />
+        <View style={styles.bottomBarRight} />
+        <View style={styles.footerInfoRow}>
+          <Text style={styles.footerText}>{data.companyName || "Company Name"}</Text>
+          <Text style={styles.footerText}>{data.account ? `A/C: ${data.account}` : ""}</Text>
         </View>
       </View>
     </Page>
   </Document>
-);
+)
 
 // Utility function to generate and download PDF
 export const generateAndDownloadPDF = async (data: SalarySlipData) => {
@@ -488,28 +464,40 @@ export const generateAndDownloadPDF = async (data: SalarySlipData) => {
 
 // Utility function to open PDF in new tab
 export const generateAndOpenPDF = async (data: SalarySlipData) => {
-  const doc = <SalarySlipPDF data={data} />;
-  const asPdf = pdf(doc);
-  const blob = await asPdf.toBlob();
-  
-  // Open in new tab
-  const url = URL.createObjectURL(blob);
-  const newTab = window.open(url, '_blank');
-  
-  if (!newTab) {
-    // Fallback to download if popup blocked
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `salary-slip-${data.name}-${data.monthName}-${data.year}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  try {
+    console.log('PDF Generation: Starting with data:', data);
+    
+    const doc = <SalarySlipPDF data={data} />;
+    const asPdf = pdf(doc);
+    
+    console.log('PDF Generation: Creating blob...');
+    const blob = await asPdf.toBlob();
+    
+    console.log('PDF Generation: Blob created, size:', blob.size);
+    
+    // Open in new tab
+    const url = URL.createObjectURL(blob);
+    const newTab = window.open(url, '_blank');
+    
+    if (!newTab) {
+      console.log('PDF Generation: Popup blocked, falling back to download');
+      // Fallback to download if popup blocked
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `salary-slip-${data.name}-${data.monthName}-${data.year}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      console.log('PDF Generation: Opened in new tab successfully');
+    }
+    
+    // Clean up after a delay
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    
+    console.log('PDF Generation: Completed successfully');
+  } catch (error) {
+    console.error('PDF Generation Error:', error);
+    throw error;
   }
-  
-  // Clean up after a delay
-  setTimeout(() => URL.revokeObjectURL(url), 10000);
-  
-  return blob;
-};
-
-export default SalarySlipPDF;
+};export default SalarySlipPDF;

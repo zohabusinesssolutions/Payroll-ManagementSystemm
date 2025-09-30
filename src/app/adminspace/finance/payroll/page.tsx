@@ -11,7 +11,6 @@ import { useRequest } from "ahooks";
 import { useState } from "react";
 import { payrollConfig, columns, type IPayroll } from "./dto";
 import { toast } from "sonner";
-import { generateAndOpenPDF } from "@/components/SalarySlipPDF";
 
 export default function PayrollPage() {
   const [selectedPayroll, setSelectedPayroll] = useState<IPayroll | null>(null);
@@ -35,18 +34,81 @@ export default function PayrollPage() {
   const payrollData: IPayroll[] = data?.data || [];
   
   // Filter data based on search query
-  const filteredData = searchQuery 
+  const filteredDataWithoutSerial = searchQuery 
     ? payrollData.filter((item) =>
         item.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : payrollData;
+
+  // Add serial numbers to the filtered data
+  const filteredData = filteredDataWithoutSerial.map((item, index) => ({
+    ...item,
+    serial_no: index + 1,
+  }));
+
+  // Handle form submission for editing payroll
+  const handleSubmit = async (formData: any) => {
+    if (!selectedPayroll) {
+      toast.error("No payroll record selected");
+      return;
+    }
+
+    try {
+      toast.loading("Updating payroll...", { id: "update-payroll" });
+
+      console.log("Submitting payroll edit:", {
+        employeeId: selectedPayroll.id,
+        month: selectedMonth,
+        year: selectedYear,
+        updates: formData,
+      });
+
+      // Call the edit payroll API
+      const response = await apiService.payroll.edit({
+        employeeId: selectedPayroll.id,
+        month: selectedMonth,
+        year: selectedYear,
+        updates: formData,
+      });
+
+      console.log("Edit payroll response:", response);
+
+      if (response && (response.data || response.message)) {
+        toast.success("Payroll updated successfully!", { id: "update-payroll" });
+        
+        // Close the drawer
+        setSelectedPayroll(null);
+        setDrawerMode("create");
+        
+        // Refresh the payroll data
+        refresh();
+      } else {
+        throw new Error("Unexpected response format");
+      }
+    } catch (error: any) {
+      console.error("Error updating payroll:", error);
+      toast.error(
+        error?.response?.data?.error || 
+        error?.response?.data?.message ||
+        error?.message || 
+        "Failed to update payroll", 
+        { id: "update-payroll" }
+      );
+    }
+  };
 
   // Handle generate slip action
   const handleGenerateSlip = async (item: IPayroll) => {
     try {
       toast.loading("Generating salary slip...", { id: "generate-slip" });
       
-      // Call API to get payroll data and create database record
+      console.log("Generating slip for:", {
+        employeeId: item.id,
+        month: selectedMonth,
+        year: selectedYear,
+      });
+      
+      // Call API service which handles both backend and PDF generation
       const response = await apiService.payroll.generateSlip({
         employeeId: item.id,
         month: selectedMonth,
@@ -54,10 +116,7 @@ export default function PayrollPage() {
       });
 
       if (response.success) {
-        // Generate PDF on frontend using @react-pdf/renderer
-        await generateAndOpenPDF(response.data);
-        
-        toast.success("Salary slip generated successfully!", { id: "generate-slip" });
+        toast.success("Salary slip generated and downloaded successfully!", { id: "generate-slip" });
         
         // Refresh payroll data
         refresh();
@@ -66,9 +125,13 @@ export default function PayrollPage() {
       }
     } catch (error: any) {
       console.error("Error generating slip:", error);
-      toast.error(error?.response?.data?.message || error?.message || "Failed to generate salary slip", { 
-        id: "generate-slip" 
-      });
+      toast.error(
+        error?.response?.data?.error || 
+        error?.response?.data?.message || 
+        error?.message || 
+        "Failed to generate salary slip", 
+        { id: "generate-slip" }
+      );
     }
   };
 
@@ -122,8 +185,9 @@ export default function PayrollPage() {
         filters={filters}
         drawerConfig={payrollConfig({
           mode: drawerMode,
-          onSubmit: (formData) => console.log("Submitted:", formData),
+          onSubmit: handleSubmit,
           loading: loading,
+          defaultValues: selectedPayroll || undefined,
           onCancel: () => {
             setSelectedPayroll(null);
             setDrawerMode("create");

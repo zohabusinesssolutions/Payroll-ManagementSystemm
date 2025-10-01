@@ -1,174 +1,558 @@
-export default function PaySlip() {
-  return (
-    <div className="bg-white shadow-lg max-w-4xl mx-auto">
-      {/* Header Section with Company Branding */}
-      <div className="relative bg-gray-100 p-8">
-        {/* Left Yellow Triangle */}
-        <div className="absolute left-0 top-0 w-0 h-0 border-l-[100px] border-l-yellow-400 border-t-[100px] border-t-transparent border-b-[100px] border-b-transparent"></div>
+import React from "react"
+import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer"
 
-        {/* Top Left Black Triangle */}
-        <div className="absolute left-0 top-0 w-0 h-0 border-l-[50px] border-l-black border-t-[50px] border-t-transparent"></div>
+// Brand palette to mimic the reference JPEG (max 5 colors)
+const BRAND_BLUE = "#3B82F6" // primary blue
+const BRAND_CYAN = "#22D3EE" // cyan accent (subtle use)
+const BRAND_MAGENTA = "#E91E63" // magenta/pink accent
+const NEUTRAL_DARK = "#0F172A" // slate-900
+const NEUTRAL_LIGHT = "#F3F4F6" // gray-100
+const BODY_MAROON = "#7A2248" // maroon-like tone for text (echoes JPEG body)
 
-        {/* Company Logo and Name */}
-        <div className="flex items-center justify-center mb-4">
-          <div className="flex items-center space-x-2">
-            MARKSOF
-          </div>
-        </div>
+const styles = StyleSheet.create({
+  page: {
+    flexDirection: "column",
+    backgroundColor: "#ffffff",
+    fontSize: 10,
+    fontFamily: "Helvetica",
+    borderWidth: 1, // thin border around the page
+    borderColor: NEUTRAL_DARK,
+  },
 
-        <div className="text-center">
-          <p className="text-lg font-semibold">
-            <span className="text-black">IT INNOVATION</span> <span className="text-yellow-400">AS A SERVICE</span>
-          </p>
-        </div>
-      </div>
+  // Decorative header accents inspired by the reference
+  headerDecor: {
+    position: "relative",
+    minHeight: 120,
+    paddingTop: 16,
+    paddingBottom: 8,
+    paddingHorizontal: 32,
+  },
+  topBarLeft: {
+    position: "absolute",
+    left: 0,
+    top: 10,
+    width: 200,
+    height: 18,
+    backgroundColor: BRAND_BLUE,
+  },
+  topBarRight: {
+    position: "absolute",
+    right: 0,
+    top: 34,
+    width: 150,
+    height: 12,
+    backgroundColor: BRAND_CYAN,
+  },
+  topBarAngle: {
+    position: "absolute",
+    right: 18,
+    top: -6,
+    width: 80,
+    height: 24,
+    backgroundColor: BRAND_MAGENTA,
+    transform: "rotate(8deg)",
+  },
 
-      {/* PaySlip Header */}
-      <div className="bg-white px-8 py-4">
-        <div className="flex justify-end">
-          <div className="bg-black text-white px-6 py-2 relative">
-            <span className="text-yellow-400 text-2xl font-bold">PAY</span>
-            <span className="text-white text-2xl font-bold bg-black px-2">SLIP</span>
-          </div>
-        </div>
-      </div>
+  // Header content: big SALARY SLIP on the left, employee identity on the right
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+  },
+  headerLeft: {
+    flexDirection: "column",
+    gap: 6,
+  },
+  slipTitle: {
+    fontSize: 28,
+    color: BRAND_BLUE,
+    fontWeight: 700,
+    letterSpacing: 1,
+  },
+  slipSubId: {
+    marginTop: 2,
+    color: "#60A5FA",
+  },
 
-      {/* Employee Information */}
-      <div className="px-8 py-6 grid grid-cols-2 gap-8">
-        <div className="space-y-4">
-          <div className="flex">
-            <span className="font-semibold text-gray-800 w-40">Employee Name :</span>
-            <span className="text-gray-800">Syed Jawad Alam</span>
-          </div>
-          <div className="flex">
-            <span className="font-semibold text-gray-800 w-40">Employee ID :</span>
-            <span className="text-gray-800">E2209006</span>
-          </div>
-          <div className="flex">
-            <span className="font-semibold text-gray-800 w-40">Job Title :</span>
-            <span className="text-gray-800">Trainee Developer</span>
-          </div>
-        </div>
+  headerRight: {
+    alignItems: "flex-end",
+  },
+  identityName: {
+    fontSize: 14,
+    color: BRAND_MAGENTA,
+    fontWeight: 700,
+  },
+  identityLines: {
+    marginTop: 4,
+    color: NEUTRAL_DARK,
+    textAlign: "right",
+  },
 
-        <div className="space-y-4">
-          <div className="flex">
-            <span className="font-semibold text-gray-800 w-40">Salary Date :</span>
-            <span className="text-gray-800">July</span>
-          </div>
-          <div className="flex">
-            <span className="font-semibold text-gray-800 w-40">Mode of Payment :</span>
-            <span className="text-gray-800">Online</span>
-          </div>
-          <div className="flex">
-            <span className="font-semibold text-gray-800 w-40">Leaves Available :</span>
-            <span className="text-gray-800">1.5 / 12</span>
-          </div>
-        </div>
-      </div>
+  // Company block (top-left small brand)
+  companyBlock: {
+    marginTop: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  companyName: {
+    fontSize: 12,
+    color: NEUTRAL_DARK,
+    fontWeight: 700,
+  },
 
-      {/* Earnings and Deductions Table */}
-      <div className="px-8 pb-8">
-        <div className="grid grid-cols-2 gap-0 border border-gray-300">
-          {/* Earnings Section */}
-          <div>
-            {/* Earnings Header */}
-            <div className="bg-yellow-400 text-center py-3">
-              <div className="flex">
-                <div className="w-16 bg-gray-300 text-black font-bold py-2 text-center border-r border-gray-400">
-                  S.L
-                </div>
-                <div className="flex-1 text-black font-bold py-2 text-center">EARNINGS</div>
-              </div>
-            </div>
+  // Employee info (kept from original, visually simplified to align with reference spacing)
+  employeeSection: {
+    paddingHorizontal: 32,
+    paddingTop: 12,
+    paddingBottom: 8,
+    flexDirection: "row",
+    gap: 24,
+  },
+  employeeColumn: { flex: 1 },
+  employeeRow: { flexDirection: "row", marginBottom: 8 },
+  employeeLabel: { width: 120, color: "#374151", fontWeight: 600 },
+  employeeValue: { flex: 1, color: "#374151" },
 
-            {/* Earnings Rows */}
-            <div className="bg-gray-100">
-              <div className="flex border-b border-gray-300">
-                <div className="w-16 bg-gray-300 text-center py-3 border-r border-gray-400 font-semibold">01</div>
-                <div className="flex-1 px-4 py-3 border-r border-gray-300">Basic Salary</div>
-                <div className="w-20 text-center py-3 font-semibold">25000</div>
-              </div>
-              <div className="flex border-b border-gray-300">
-                <div className="w-16 bg-gray-300 text-center py-3 border-r border-gray-400 font-semibold">02</div>
-                <div className="flex-1 px-4 py-3 border-r border-gray-300">Fuel Allowance</div>
-                <div className="w-20 text-center py-3 font-semibold">2500</div>
-              </div>
-              <div className="flex border-b border-gray-300">
-                <div className="w-16 bg-gray-300 text-center py-3 border-r border-gray-400 font-semibold">03</div>
-                <div className="flex-1 px-4 py-3 border-r border-gray-300">Medical Allowance</div>
-                <div className="w-20 text-center py-3 font-semibold">2500</div>
-              </div>
-              <div className="flex border-b border-gray-300">
-                <div className="w-16 bg-gray-300 text-center py-3 border-r border-gray-400 font-semibold">04</div>
-                <div className="flex-1 px-4 py-3 border-r border-gray-300">Bonus</div>
-                <div className="w-20 text-center py-3 font-semibold">0</div>
-              </div>
-              <div className="flex bg-gray-200">
-                <div className="w-16 bg-gray-300 text-center py-3 border-r border-gray-400 font-semibold">05</div>
-                <div className="flex-1 px-4 py-3 border-r border-gray-300 font-semibold">Total Amount</div>
-                <div className="w-20 text-center py-3 font-bold">30000</div>
-              </div>
-            </div>
-          </div>
+  // Section header "ribbon" like the reference table header
+  columnRibbon: {
+    alignSelf: "stretch",
+    backgroundColor: BRAND_BLUE,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+  },
+  columnRibbonText: {
+    color: "#ffffff",
+    fontWeight: 700,
+    letterSpacing: 0.5,
+  },
 
-          {/* Deductions Section */}
-          <div className="border-l border-gray-300">
-            {/* Deductions Header */}
-            <div className="bg-yellow-400 text-center py-3">
-              <div className="text-black font-bold py-2">DEDUCTION</div>
-            </div>
+  // Two-column main table wrapper (Earnings | Deductions)
+  tableSection: {
+    paddingHorizontal: 32,
+    paddingBottom: 16,
+  },
+  mainTable: {
+    flexDirection: "row",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
 
-            {/* Deductions Rows */}
-            <div className="bg-gray-100">
-              <div className="flex border-b border-gray-300">
-                <div className="flex-1 px-4 py-3 border-r border-gray-300">Late Deduction</div>
-                <div className="w-20 text-center py-3 font-semibold">500</div>
-              </div>
-              <div className="flex border-b border-gray-300">
-                <div className="flex-1 px-4 py-3 border-r border-gray-300">Absent Deduction</div>
-                <div className="w-20 text-center py-3 font-semibold">0</div>
-              </div>
-              <div className="flex border-b border-gray-300">
-                <div className="flex-1 px-4 py-3 border-r border-gray-300">Including Tax</div>
-                <div className="w-20 text-center py-3 font-semibold">0</div>
-              </div>
-              <div className="flex border-b border-gray-300">
-                <div className="flex-1 px-4 py-3 border-r border-gray-300 font-semibold">Total Deduction</div>
-                <div className="w-20 text-center py-3 font-bold">500</div>
-              </div>
-              <div className="flex bg-gray-200">
-                <div className="flex-1 px-4 py-3 border-r border-gray-300 font-semibold">Amount Payable</div>
-                <div className="w-20 text-center py-3 font-bold">29500</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+  // Earnings
+  earningsSection: { flex: 1 },
+  earningsHeader: { paddingVertical: 0 }, // replaced by sectionHeaderPill
+  earningsContent: { backgroundColor: NEUTRAL_LIGHT },
+  row: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  cellSerial: {
+    width: 48,
+    textAlign: "center",
+    paddingVertical: 10,
+    backgroundColor: "#E5E7EB",
+    fontWeight: 600,
+    borderRightWidth: 1,
+    borderRightColor: "#CBD5E1",
+    color: BODY_MAROON, // echo JPEG text tone
+  },
+  cellDesc: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRightWidth: 1,
+    borderRightColor: "#E5E7EB",
+    color: BODY_MAROON,
+  },
+  cellAmount: {
+    width: 70,
+    textAlign: "center",
+    paddingVertical: 10,
+    fontWeight: 700,
+    color: BRAND_MAGENTA, // keeps the magenta emphasis
+  },
+  rowHighlight: { backgroundColor: "#EAEFFB" },
 
-      {/* HR Signature */}
-      <div className="px-8 pb-8">
-        <div className="flex justify-end">
-          <div className="text-right">
-            <p className="font-semibold text-gray-800">Hr Sign</p>
-          </div>
-        </div>
-      </div>
+  // Deductions
+  deductionsSection: {
+    flex: 1,
+    borderLeftWidth: 1,
+    borderLeftColor: "#E5E7EB",
+  },
 
-      {/* Footer */}
-      <div className="bg-black text-white px-8 py-6">
-        <div className="flex justify-between items-center">
-          <div className="text-sm">
-            <p className="text-yellow-400">Plot # LS16 Ground Floor</p>
-            <p className="text-yellow-400">Sector 5E, Orangi Twon</p>
-            <p className="text-yellow-400">Karachi 75800,Pakistan</p>
-          </div>
-          <div className="text-sm text-right">
-            <p className="text-yellow-400">www.maksof.com</p>
-            <p className="text-yellow-400">info@maksofcom</p>
-            <p className="text-yellow-400">(+92) 213-6661-104</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+  // Summary box on the right, like invoice totals (mapped to salary fields)
+  summaryWrap: {
+    paddingHorizontal: 32,
+    paddingTop: 10,
+    alignItems: "flex-end",
+  },
+  summaryBox: {
+    width: 240,
+    borderTopWidth: 1,
+    borderColor: "#E5E7EB",
+    paddingTop: 8,
+    gap: 4,
+  },
+  summaryRow: { flexDirection: "row", justifyContent: "space-between" },
+  summaryLabel: { color: BODY_MAROON }, // align with JPEG body tone
+  summaryValue: { color: NEUTRAL_DARK, fontWeight: 700 },
+  summaryGrand: { fontWeight: 800 },
+
+  // Signature
+  signatureSection: {
+    paddingHorizontal: 32,
+    paddingTop: 18,
+    paddingBottom: 18,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+  },
+  signatureText: { color: "#374151", fontWeight: 600 },
+
+  // Footer accents similar to reference
+  footerDecor: {
+    position: "relative",
+    minHeight: 60,
+    paddingHorizontal: 32,
+    paddingBottom: 18,
+    justifyContent: "flex-end",
+  },
+  bottomBarLeft: {
+    position: "absolute",
+    left: 32,
+    bottom: 20,
+    width: 160,
+    height: 18,
+    backgroundColor: BRAND_MAGENTA,
+  },
+  bottomBarRight: {
+    position: "absolute",
+    right: 32,
+    bottom: 8,
+    width: 200,
+    height: 12,
+    backgroundColor: NEUTRAL_DARK,
+  },
+  footerInfoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  footerText: { color: BRAND_BLUE, fontSize: 9 },
+
+  infoBlocks: {
+    paddingHorizontal: 32,
+    paddingTop: 8,
+    paddingBottom: 4,
+    flexDirection: "row",
+    gap: 24,
+  },
+  infoCol: {
+    flex: 1,
+    gap: 4,
+  },
+  infoHeading: {
+    fontSize: 10,
+    fontWeight: 700,
+    color: BRAND_BLUE,
+    marginBottom: 4,
+  },
+  infoText: {
+    color: BODY_MAROON,
+    lineHeight: 1.4,
+  },
+})
+
+interface SalarySlipData {
+  name: string
+  designation: string
+  location: string
+  account: string
+  grossSalary: number
+  fuelEntitlement: number | null
+  fuelRate: number
+  fuelAmount: number
+  commissionAmount: number
+  overtimeHours: number
+  overtimeAmount: number
+  sundayCount: number
+  sundayAmount: number
+  sundayFuel: number
+  leaveCount: number
+  leaveDeduction: number
+  halfDayCount: number
+  halfDayDeduction: number
+  loanDeduction: number
+  netSalary: number
+  totalEarnings: number
+  totalDeductions: number
+  monthName: string
+  year: number
+  companyName: string
+  generatedDate: string
+  id?: string
+  month?: number
 }
+
+interface SalarySlipPDFProps {
+  data: SalarySlipData
+}
+
+const SalarySlipPDF: React.FC<SalarySlipPDFProps> = ({ data }) => (
+  <Document>
+    <Page size="A4" style={styles.page}>
+      {/* Header geometric accents */}
+      <View style={styles.headerDecor}>
+        <View style={styles.topBarLeft} />
+        <View style={styles.topBarRight} />
+        <View style={styles.topBarAngle} />
+
+        <View style={styles.headerContent}>
+          {/* Left: big title and ID-like line */}
+          <View style={styles.headerLeft}>
+            <Text style={styles.slipTitle}>SALARY SLIP</Text>
+            <Text style={styles.slipSubId}>
+              {"#"}
+              {data.id || "000000"}
+              {"  "}•{"  "}
+              {data.monthName} {data.year}
+            </Text>
+          </View>
+
+          {/* Right: employee identity like the magenta name block */}
+          <View style={styles.headerRight}>
+            <Text style={styles.identityName}>{(data.name || "Employee Name").toUpperCase()}</Text>
+            <Text style={styles.identityLines}>
+              {data.generatedDate || "Date"}
+              {"\n"}
+              {data.location || "Office Location"}
+            </Text>
+          </View>
+        </View>
+
+        {/* Small company mark under header, left-aligned */}
+        <View style={styles.companyBlock}>
+          <Text style={styles.companyName}>{data.companyName || "Company Name"}</Text>
+        </View>
+      </View>
+
+      {/* Employee info rows (kept same fields, condensed spacing) */}
+      <View style={styles.employeeSection}>
+        <View style={styles.employeeColumn}>
+          <View style={styles.employeeRow}>
+            <Text style={styles.employeeLabel}>Employee Name :</Text>
+            <Text style={styles.employeeValue}>{data.name}</Text>
+          </View>
+          <View style={styles.employeeRow}>
+            <Text style={styles.employeeLabel}>Employee ID :</Text>
+            <Text style={styles.employeeValue}>{data.id || "N/A"}</Text>
+          </View>
+          <View style={styles.employeeRow}>
+            <Text style={styles.employeeLabel}>Job Title :</Text>
+            <Text style={styles.employeeValue}>{data.designation}</Text>
+          </View>
+        </View>
+
+        <View style={styles.employeeColumn}>
+          <View style={styles.employeeRow}>
+            <Text style={styles.employeeLabel}>Salary Month :</Text>
+            <Text style={styles.employeeValue}>
+              {data.monthName} {data.year}
+            </Text>
+          </View>
+          <View style={styles.employeeRow}>
+            <Text style={styles.employeeLabel}>Mode of Payment :</Text>
+            <Text style={styles.employeeValue}>Online</Text>
+          </View>
+          <View style={styles.employeeRow}>
+            <Text style={styles.employeeLabel}>Leaves Available :</Text>
+            <Text style={styles.employeeValue}>{data.leaveCount} / 12</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Tables with ribbon headers like the JPEG */}
+      <View style={styles.tableSection}>
+        <View style={styles.mainTable}>
+          <View style={styles.earningsSection}>
+            <View style={styles.columnRibbon}>
+              <Text style={styles.columnRibbonText}>EARNINGS</Text>
+            </View>
+            <View style={styles.earningsContent}>
+              <View style={styles.row}>
+                <Text style={styles.cellSerial}>01</Text>
+                <Text style={styles.cellDesc}>Gross Salary</Text>
+                <Text style={styles.cellAmount}>{data.grossSalary.toLocaleString()}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.cellSerial}>02</Text>
+                <Text style={styles.cellDesc}>Fuel Allowance</Text>
+                <Text style={styles.cellAmount}>{data.fuelAmount.toLocaleString()}</Text>
+              </View>
+              {/* <View style={styles.row}>
+                <Text style={styles.cellSerial}>03</Text>
+                <Text style={styles.cellDesc}>Medical Allowance</Text>
+                <Text style={styles.cellAmount}>{data.commissionAmount.toLocaleString()}</Text>
+              </View> */}
+              <View style={styles.row}>
+                <Text style={styles.cellSerial}>03</Text>
+                <Text style={styles.cellDesc}>Commission / Additional</Text>
+                <Text style={styles.cellAmount}>{data.commissionAmount.toLocaleString()}</Text>
+              </View>
+              <View style={[styles.row, styles.rowHighlight]}>
+                <Text style={styles.cellSerial}>04</Text>
+                <Text style={styles.cellDesc}>Bonus</Text>
+                <Text style={styles.cellAmount}>{data.overtimeAmount.toLocaleString()}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.cellSerial}>05</Text>
+                <Text style={styles.cellDesc}>Total Earnings</Text>
+                <Text style={styles.cellAmount}>{data.totalEarnings.toLocaleString()}</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.deductionsSection}>
+            {/* Deductions column */}
+            <View style={styles.columnRibbon}>
+              <Text style={styles.columnRibbonText}>DEDUCTIONS</Text>
+            </View>
+            <View style={styles.earningsContent}>
+              <View style={styles.row}>
+                <Text style={styles.cellDesc}>Late Deduction</Text>
+                <Text style={styles.cellAmount}>{data.halfDayDeduction.toLocaleString()}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.cellDesc}>Absent Deduction</Text>
+                <Text style={styles.cellAmount}>{data.leaveDeduction.toLocaleString()}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.cellDesc}>Including Tax</Text>
+                <Text style={styles.cellAmount}>{data.loanDeduction.toLocaleString()}</Text>
+              </View>
+              <View style={[styles.row, styles.rowHighlight]}>
+                <Text style={styles.cellDesc}>Total Deductions</Text>
+                <Text style={styles.cellAmount}>{data.totalDeductions.toLocaleString()}</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* Right-side summary box (mirrors invoice's subtotal/tax/total pattern) */}
+      <View style={styles.summaryWrap}>
+        <View style={styles.summaryBox}>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Total Earnings</Text>
+            <Text style={styles.summaryValue}>{data.totalEarnings.toLocaleString()}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Total Deductions</Text>
+            <Text style={styles.summaryValue}>{data.totalDeductions.toLocaleString()}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={[styles.summaryLabel, styles.summaryGrand]}>Net Salary</Text>
+            <Text style={[styles.summaryValue, styles.summaryGrand]}>{data.netSalary.toLocaleString()}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Bottom info blocks like the JPEG */}
+      <View style={styles.infoBlocks}>
+        <View style={styles.infoCol}>
+          <Text style={styles.infoHeading}>PAYMENT INFO</Text>
+          <Text style={styles.infoText}>Account Num.: {data.account || "—"}</Text>
+          <Text style={styles.infoText}>A/C Name: {data.companyName || "—"}</Text>
+          <Text style={styles.infoText}>Bank Detail: BANK NAME</Text>
+        </View>
+        <View style={styles.infoCol}>
+          <Text style={styles.infoHeading}>TERM & CONDITION</Text>
+          <Text style={styles.infoText}>
+            Salary is processed as per company policy. In case of discrepancies, contact HR within 3 working days from
+            the generated date.
+          </Text>
+        </View>
+      </View>
+
+      {/* Signature (kept) */}
+      <View style={styles.signatureSection}>
+        <Text style={styles.signatureText}>HR Sign</Text>
+      </View>
+
+      {/* Footer with decorative bars and info */}
+      <View style={styles.footerDecor}>
+        <View style={styles.bottomBarLeft} />
+        <View style={styles.bottomBarRight} />
+        <View style={styles.footerInfoRow}>
+          <Text style={styles.footerText}>{data.companyName || "Company Name"}</Text>
+          <Text style={styles.footerText}>{data.account ? `A/C: ${data.account}` : ""}</Text>
+        </View>
+      </View>
+    </Page>
+  </Document>
+)
+
+
+// Utility function to generate and download PDF
+export const generateAndDownloadPDF = async (data: SalarySlipData) => {
+  const doc = <SalarySlipPDF data={data} />;
+  const asPdf = pdf(doc);
+  const blob = await asPdf.toBlob();
+  
+  // Create download link
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `salary-slip-${data.name}-${data.monthName}-${data.year}.pdf`;
+  
+  // Trigger download
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  // Clean up
+  URL.revokeObjectURL(url);
+  
+  return blob;
+};
+
+// Utility function to open PDF in new tab
+export const generateAndOpenPDF = async (data: SalarySlipData) => {
+  try {
+    console.log('PDF Generation: Starting with data:', data);
+    
+    const doc = <SalarySlipPDF data={data} />;
+    const asPdf = pdf(doc);
+    
+    console.log('PDF Generation: Creating blob...');
+    const blob = await asPdf.toBlob();
+    
+    console.log('PDF Generation: Blob created, size:', blob.size);
+    
+    // Open in new tab
+    const url = URL.createObjectURL(blob);
+    const newTab = window.open(url, '_blank');
+    
+    if (!newTab) {
+      console.log('PDF Generation: Popup blocked, falling back to download');
+      // Fallback to download if popup blocked
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `salary-slip-${data.name}-${data.monthName}-${data.year}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      console.log('PDF Generation: Opened in new tab successfully');
+    }
+    
+    // Clean up after a delay
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    
+    console.log('PDF Generation: Completed successfully');
+  } catch (error) {
+    console.error('PDF Generation Error:', error);
+    throw error;
+  }
+};export default SalarySlipPDF;

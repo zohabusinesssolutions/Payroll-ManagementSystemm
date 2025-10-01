@@ -119,7 +119,7 @@ export async function calculatePayroll(
     let overtimeAmount = overtimeHours * hourlySalary;
 
     // Calculate Sunday amount
-    let sundayAmount = sundayCount * dailySalary;
+    let sundayAmount = sundayCount * (dailySalary* 2);
 
     // Calculate Sunday fuel amount
     let sundayFuel = sundayCount * fuelRate;

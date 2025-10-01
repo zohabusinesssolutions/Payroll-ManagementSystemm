@@ -1,5 +1,6 @@
 import type React from "react"
-import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer"
+import { Document, Page, Text, View, StyleSheet, Image, pdf } from "@react-pdf/renderer"
+import logo from '../../public/images/corporate-link-logo.png';
 
 // Brand palette to mimic the reference JPEG (max 5 colors)
 const BRAND_BLUE = "#3B82F6" // primary blue
@@ -7,6 +8,7 @@ const BRAND_CYAN = "#22D3EE" // cyan accent (subtle use)
 const BRAND_MAGENTA = "#E91E63" // magenta/pink accent
 const NEUTRAL_DARK = "#0F172A" // slate-900
 const NEUTRAL_LIGHT = "#F3F4F6" // gray-100
+const BODY_MAROON = "#7A2248" // maroon-like tone for text (echoes JPEG body)
 
 const styles = StyleSheet.create({
   page: {
@@ -21,7 +23,7 @@ const styles = StyleSheet.create({
   // Decorative header accents inspired by the reference
   headerDecor: {
     position: "relative",
-    minHeight: 110,
+    minHeight: 120,
     paddingTop: 16,
     paddingBottom: 8,
     paddingHorizontal: 32,
@@ -30,27 +32,18 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
     top: 10,
-    width: 180,
+    width: 200,
     height: 18,
     backgroundColor: BRAND_BLUE,
   },
   topBarRight: {
     position: "absolute",
     right: 0,
-    top: 32,
-    width: 140,
+    top: 34,
+    width: 150,
     height: 12,
     backgroundColor: BRAND_CYAN,
   },
-  topBarAngle: {
-    position: "absolute",
-    right: 28,
-    top: 0,
-    width: 90,
-    height: 24,
-    backgroundColor: BRAND_MAGENTA,
-  },
-
   // Header content: big SALARY SLIP on the left, employee identity on the right
   headerContent: {
     flexDirection: "row",
@@ -69,7 +62,7 @@ const styles = StyleSheet.create({
   },
   slipSubId: {
     marginTop: 2,
-    color: "#60A5FA", // light-blue text similar to reference number
+    color: "#60A5FA",
   },
 
   headerRight: {
@@ -112,17 +105,17 @@ const styles = StyleSheet.create({
   employeeLabel: { width: 120, color: "#374151", fontWeight: 600 },
   employeeValue: { flex: 1, color: "#374151" },
 
-  // Section header "pill" like the reference table header
-  sectionHeaderPill: {
-    marginTop: 12,
-    marginBottom: 6,
-    alignSelf: "flex-start",
+  // Section header "ribbon" like the reference table header
+  columnRibbon: {
+    alignSelf: "stretch",
     backgroundColor: BRAND_BLUE,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  columnRibbonText: {
     color: "#ffffff",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 12,
     fontWeight: 700,
+    letterSpacing: 0.5,
   },
 
   // Two-column main table wrapper (Earnings | Deductions)
@@ -153,6 +146,7 @@ const styles = StyleSheet.create({
     fontWeight: 600,
     borderRightWidth: 1,
     borderRightColor: "#CBD5E1",
+    color: BODY_MAROON, // echo JPEG text tone
   },
   cellDesc: {
     flex: 1,
@@ -160,13 +154,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRightWidth: 1,
     borderRightColor: "#E5E7EB",
+    color: BODY_MAROON,
   },
   cellAmount: {
     width: 70,
     textAlign: "center",
     paddingVertical: 10,
     fontWeight: 700,
-    color: BRAND_MAGENTA, // magenta emphasis similar to invoice amounts
+    color: BRAND_MAGENTA, // keeps the magenta emphasis
   },
   rowHighlight: { backgroundColor: "#EAEFFB" },
 
@@ -190,50 +185,21 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     gap: 4,
   },
-  summaryRow: { flexDirection: "row", justifyContent: "space-between" },
-  summaryLabel: { color: "#374151" },
+  summaryRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 4 },
+  summaryLabel: { color: BODY_MAROON }, // align with JPEG body tone
   summaryValue: { color: NEUTRAL_DARK, fontWeight: 700 },
   summaryGrand: { fontWeight: 800 },
 
   // Signature
   signatureSection: {
     paddingHorizontal: 32,
-    paddingTop: 18,
+    paddingTop: 40,
     paddingBottom: 18,
+    paddingRight: 220,
     flexDirection: "row",
     justifyContent: "flex-end",
   },
   signatureText: { color: "#374151", fontWeight: 600 },
-
-  // Footer accents similar to reference
-  footerDecor: {
-    position: "relative",
-    minHeight: 60,
-    paddingHorizontal: 32,
-    paddingBottom: 18,
-    justifyContent: "flex-end",
-  },
-  bottomBarLeft: {
-    position: "absolute",
-    left: 32,
-    bottom: 20,
-    width: 140,
-    height: 18,
-    backgroundColor: BRAND_MAGENTA,
-  },
-  bottomBarRight: {
-    position: "absolute",
-    right: 32,
-    bottom: 8,
-    width: 180,
-    height: 12,
-    backgroundColor: NEUTRAL_DARK,
-  },
-  footerInfoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  footerText: { color: BRAND_BLUE, fontSize: 9 },
 })
 
 interface SalarySlipData {
@@ -276,38 +242,21 @@ const SalarySlipPDF: React.FC<SalarySlipPDFProps> = ({ data }) => (
     <Page size="A4" style={styles.page}>
       {/* Header geometric accents */}
       <View style={styles.headerDecor}>
-        <View style={styles.topBarLeft} />
-        <View style={styles.topBarRight} />
-        <View style={styles.topBarAngle} />
 
         <View style={styles.headerContent}>
-          {/* Left: big title and ID-like line */}
+          {/* Left: Logo above company name */}
           <View style={styles.headerLeft}>
-            <Text style={styles.slipTitle}>SALARY SLIP</Text>
-            <Text style={styles.slipSubId}>
-              {"#"}
-              {data.id || "000000"}
-              {"  "}•{"  "}
-              {data.monthName} {data.year}
-            </Text>
+            <Image src={logo.src} style={{ width: 48, height: 48 }} />
+            <Text style={styles.companyName}>Corporate Link</Text>
           </View>
 
-          {/* Right: employee identity like the magenta name block */}
+          {/* Right: Payslip heading only */}
           <View style={styles.headerRight}>
-            <Text style={styles.identityName}>{data.name || "Employee Name"}</Text>
-            <Text style={styles.identityLines}>
-              {data.generatedDate || "Date"}
-              {"\n"}
-              {data.location || "Office Location"}
-            </Text>
+            <Text style={styles.slipTitle}>Payslip</Text>
           </View>
-        </View>
-
-        {/* Small company mark under header, left-aligned */}
-        <View style={styles.companyBlock}>
-          <Text style={styles.companyName}>{data.companyName || "Company Name"}</Text>
         </View>
       </View>
+
 
       {/* Employee info rows (kept same fields, condensed spacing) */}
       <View style={styles.employeeSection}>
@@ -344,15 +293,17 @@ const SalarySlipPDF: React.FC<SalarySlipPDFProps> = ({ data }) => (
         </View>
       </View>
 
-      {/* Tables with pill headers like the reference */}
+      {/* Tables with ribbon headers like the JPEG */}
       <View style={styles.tableSection}>
-        <Text style={styles.sectionHeaderPill}>EARNINGS</Text>
         <View style={styles.mainTable}>
           <View style={styles.earningsSection}>
+            <View style={styles.columnRibbon}>
+              <Text style={styles.columnRibbonText}>EARNINGS</Text>
+            </View>
             <View style={styles.earningsContent}>
               <View style={styles.row}>
                 <Text style={styles.cellSerial}>01</Text>
-                <Text style={styles.cellDesc}>Basic Salary</Text>
+                <Text style={styles.cellDesc}>Gross Salary</Text>
                 <Text style={styles.cellAmount}>{data.grossSalary.toLocaleString()}</Text>
               </View>
               <View style={styles.row}>
@@ -360,15 +311,20 @@ const SalarySlipPDF: React.FC<SalarySlipPDFProps> = ({ data }) => (
                 <Text style={styles.cellDesc}>Fuel Allowance</Text>
                 <Text style={styles.cellAmount}>{data.fuelAmount.toLocaleString()}</Text>
               </View>
-              <View style={styles.row}>
+              {/* <View style={styles.row}>
                 <Text style={styles.cellSerial}>03</Text>
                 <Text style={styles.cellDesc}>Medical Allowance</Text>
                 <Text style={styles.cellAmount}>{data.commissionAmount.toLocaleString()}</Text>
+              </View> */}
+              <View style={styles.row}>
+                <Text style={styles.cellSerial}>03</Text>
+                <Text style={styles.cellDesc}>Additional</Text>
+                <Text style={styles.cellAmount}>{( data.overtimeAmount + data.sundayAmount).toLocaleString()}</Text>
               </View>
               <View style={[styles.row, styles.rowHighlight]}>
                 <Text style={styles.cellSerial}>04</Text>
-                <Text style={styles.cellDesc}>Bonus</Text>
-                <Text style={styles.cellAmount}>{data.overtimeAmount.toLocaleString()}</Text>
+                <Text style={styles.cellDesc}>Bonus / Commission</Text>
+                <Text style={styles.cellAmount}>{data.commissionAmount.toLocaleString()}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.cellSerial}>05</Text>
@@ -380,7 +336,9 @@ const SalarySlipPDF: React.FC<SalarySlipPDFProps> = ({ data }) => (
 
           <View style={styles.deductionsSection}>
             {/* Deductions column */}
-            <Text style={styles.sectionHeaderPill}>DEDUCTIONS</Text>
+            <View style={styles.columnRibbon}>
+              <Text style={styles.columnRibbonText}>DEDUCTIONS</Text>
+            </View>
             <View style={styles.earningsContent}>
               <View style={styles.row}>
                 <Text style={styles.cellDesc}>Late Deduction</Text>
@@ -425,40 +383,31 @@ const SalarySlipPDF: React.FC<SalarySlipPDFProps> = ({ data }) => (
       <View style={styles.signatureSection}>
         <Text style={styles.signatureText}>HR Sign</Text>
       </View>
-
-      {/* Footer with decorative bars and info */}
-      <View style={styles.footerDecor}>
-        <View style={styles.bottomBarLeft} />
-        <View style={styles.bottomBarRight} />
-        <View style={styles.footerInfoRow}>
-          <Text style={styles.footerText}>{data.companyName || "Company Name"}</Text>
-          <Text style={styles.footerText}>{data.account ? `A/C: ${data.account}` : ""}</Text>
-        </View>
-      </View>
     </Page>
   </Document>
 )
+
 
 // Utility function to generate and download PDF
 export const generateAndDownloadPDF = async (data: SalarySlipData) => {
   const doc = <SalarySlipPDF data={data} />;
   const asPdf = pdf(doc);
   const blob = await asPdf.toBlob();
-  
+
   // Create download link
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
   link.download = `salary-slip-${data.name}-${data.monthName}-${data.year}.pdf`;
-  
+
   // Trigger download
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  
+
   // Clean up
   URL.revokeObjectURL(url);
-  
+
   return blob;
 };
 
@@ -466,19 +415,19 @@ export const generateAndDownloadPDF = async (data: SalarySlipData) => {
 export const generateAndOpenPDF = async (data: SalarySlipData) => {
   try {
     console.log('PDF Generation: Starting with data:', data);
-    
+
     const doc = <SalarySlipPDF data={data} />;
     const asPdf = pdf(doc);
-    
+
     console.log('PDF Generation: Creating blob...');
     const blob = await asPdf.toBlob();
-    
+
     console.log('PDF Generation: Blob created, size:', blob.size);
-    
+
     // Open in new tab
     const url = URL.createObjectURL(blob);
     const newTab = window.open(url, '_blank');
-    
+
     if (!newTab) {
       console.log('PDF Generation: Popup blocked, falling back to download');
       // Fallback to download if popup blocked
@@ -491,13 +440,13 @@ export const generateAndOpenPDF = async (data: SalarySlipData) => {
     } else {
       console.log('PDF Generation: Opened in new tab successfully');
     }
-    
+
     // Clean up after a delay
     setTimeout(() => URL.revokeObjectURL(url), 10000);
-    
+
     console.log('PDF Generation: Completed successfully');
   } catch (error) {
     console.error('PDF Generation Error:', error);
     throw error;
   }
-};export default SalarySlipPDF;
+}; export default SalarySlipPDF;

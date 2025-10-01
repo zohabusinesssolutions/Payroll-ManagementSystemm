@@ -200,13 +200,13 @@ export async function POST(request: NextRequest) {
       totalDeductions: totalDeductions,
       monthName: monthNames[month - 1],
       year: year,
-      companyName: "Payroll Management System", // You can make this configurable
+      companyName: "Corporate Link", // You can make this configurable
       generatedDate: new Date().toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
       }),
-      id: salarySlip.id,
+      id: employeeId,
       month: month,
     });
 

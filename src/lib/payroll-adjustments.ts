@@ -124,7 +124,7 @@ export function applyPayrollAdjustments(
     // do the same for sunday amount if sunday count adjustment is provided
     let sundayAmount = baseValues.sundayAmount
     if (adjustments.sundayCount){
-        sundayAmount = sundayAmount + (adjustments.sundayCount * perDaySalary)
+        sundayAmount = sundayAmount + (adjustments.sundayCount * ( perDaySalary * 2))
     }
 
     // do the same for leave deduction if leave count adjustment is provided

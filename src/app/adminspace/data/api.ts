@@ -65,6 +65,46 @@ class ApiService {
       const q = encodeQueryData(query);
       return axiosService.get<any>(`/payroll/summary?${q}`);
     },
+    get: (query: { employeeId?: string; month: number; year: number }) => {
+      const q = encodeQueryData(query);
+      return axiosService.get<any>(`/payroll?${q}`);
+    },
+    exportCSV: async (query: { month: number; year: number }) => {
+      try {
+        const q = encodeQueryData(query);
+        const response = await fetch(`/api/payroll/export?${q}`, {
+          method: 'GET',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to export CSV');
+        }
+
+        // Get the filename from the Content-Disposition header
+        const contentDisposition = response.headers.get('Content-Disposition');
+        const filename = contentDisposition
+          ? contentDisposition.split('filename=')[1]?.replace(/"/g, '')
+          : 'payroll_export.csv';
+
+        // Create a blob from the response
+        const blob = await response.blob();
+        
+        // Create a temporary URL and trigger download
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        return { success: true, message: "CSV exported successfully" };
+      } catch (error: any) {
+        console.error('CSV Export error:', error);
+        throw error;
+      }
+    },
     generateSlip: async (data: { employeeId: string; month: number; year: number }) => {
       try {
         console.log('API Service: Starting slip generation for:', data);

@@ -148,6 +148,20 @@ model Employee {
   payrollAdjustments PayrollAdjustments[] @relation("EmployeePayrollAdjustments")
 
   @@map("employee")
+  BankAccount BankAccount[]
+}
+
+model BankAccount {
+  id          String   @id @default(cuid())
+  employeeId  String   @unique
+  bankName    String
+  accountNo   String
+  branchCode  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("bank_account")
 }
 
 model Attendance {

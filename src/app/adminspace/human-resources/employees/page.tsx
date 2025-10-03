@@ -159,7 +159,7 @@ export default function EmployeePage() {
       ) : (
         <>
           {activeEmployees.length > 0 && (
-            <div className="space-y-6">
+            <div className="space-y-6 mt-12">
               <h2 className="text-2xl font-semibold">Active Employees</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {activeEmployees.map((employee) => (

@@ -433,35 +433,141 @@ async function main() {
 
   // new
   try {
-    const employees = await prisma.employee.findMany({
-      orderBy: { createdAt: "asc" }, // taake sequence consistent ho
-    });
+    const departments = [
+      { name: "Technical", description: "Handles engineering and support staff" },
+      { name: "Marketing", description: "Handles marketing and sales operations" },
+      { name: "Accounts & Finance", description: "Responsible for accounts and finance" },
+      { name: "Operations/Support", description: "Operations and support staff" },
+    ];
 
-    let joiningDate = new Date();
-    let month = String(joiningDate.getMonth() + 1).padStart(2, "0");
-    let year = String(joiningDate.getFullYear()).slice(-2);
-    let monthYearPrefix = `E${month}${year}`;
+    const createdDepartments = [];
 
-    for (let i = 0; i < employees.length; i++) {
-      const employee = employees[i];
-      const employeeNumber = String(i + 1).padStart(3, "0"); // 001, 002, ...
-      const newEmpId = `${monthYearPrefix}${employeeNumber}`;
-
-      await prisma.employee.update({
-        where: { id: employee.id },
-        data: { id: newEmpId },
+    for (const dept of departments) {
+      const created = await prisma.department.upsert({
+        where: { name: dept.name },
+        update: {},
+        create: dept,
       });
-
-      console.log(`Updated ${employee.userId} -> ${newEmpId}`);
+      createdDepartments.push(created);
     }
 
-    console.log("All employee IDs updated successfully!");
+    console.log("✅ Departments seeded");
+
+    // 2. Permissions Seed Example
+    // Create a dictionary { "Technical": "id123", "Accounts & Finance": "id456" }
+    const deptMap = Object.fromEntries(
+      createdDepartments.map((d) => [d.name, d.id])
+    );
+
+    const permissions = [
+      {
+        departmentId: deptMap["Technical"],
+        model: "Payroll",
+        accessScope: "SELF",
+        accessLevel: "READ",
+      },
+      {
+        departmentId: deptMap["Technical"],
+        model: "Payroll",
+        accessScope: "SELF",
+        accessLevel: "WRITE",
+      },
+      {
+        departmentId: deptMap["Accounts & Finance"],
+        model: "Payroll",
+        accessScope: "ALL",
+        accessLevel: "READ",
+      },
+      {
+        departmentId: deptMap["Accounts & Finance"],
+        model: "Payroll",
+        accessScope: "ALL",
+        accessLevel: "WRITE",
+      },
+    ];
+    for (const perm of permissions) {
+      await prisma.permission.upsert({
+        where: {
+          departmentId_model_accessScope: {
+            departmentId: perm.departmentId,
+            model: perm.model,
+            accessScope: perm.accessScope,
+          },
+        },
+        update: { accessLevel: perm.accessLevel },
+        create: perm,
+      });
+    }
+
+    console.log("✅ Permissions seeded");
+
   } catch (error) {
     console.error("Error updating employee IDs:", error);
   }
 }
+// designation → department name mapping
+const designationToDept = {
+  "Technical Head": "Technical",
+  "Technical Engineer": "Technical",
+  "Service Engineer": "Technical",
+  "Trainee Engineer": "Technical",
+  "Trainee Developer": "Technical",
 
-seed()
+  "Marketing Manager": "Marketing",
+  "Sales And Service Engineer": "Marketing",
+
+  "Accounts Executive": "Accounts & Finance",
+  "Office Boy": "Operations/Support",
+  "Driver": "Operations/Support",
+};
+
+async function assignDepartments() {
+  // Step 1: Get all departments
+  const departments = await prisma.department.findMany();
+  const deptMap = {};
+  departments.forEach((dept) => {
+    deptMap[dept.name] = dept.id;
+  });
+
+  // Step 2: Fetch all employees with designation
+  const employees = await prisma.employee.findMany(
+    {
+      include: { user: true },
+    }
+  );
+  const users = await prisma.user.findMany();
+
+  for (const emp of employees) {
+    const deptName = designationToDept[emp.designation?.trim() || ""];
+
+    if (!deptName) {
+      console.warn(`⚠️ No department mapping found for designation: ${emp.designation}`);
+      continue;
+    }
+
+    const deptId = deptMap[deptName];
+    if (!deptId) {
+      console.warn(`⚠️ Department not found in DB for: ${deptName}`);
+      continue;
+    }
+
+    // find user id with emp.userId
+    const user = users.find(u => u.id === emp.userId);
+    if (!user) {
+      console.warn(`⚠️ User not found for employee ID: ${emp.id}`);
+      continue;
+    }
+    // Step 3: Update employee with correct deptId
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { departmentId: deptId },
+    });
+
+    console.log(`✅ Updated ${user.id} (${emp.designation}) → ${deptName}`);
+  }
+}
+
+assignDepartments()
   .then(() => {
     console.log('Successfully seeded');
     process.exit(0);

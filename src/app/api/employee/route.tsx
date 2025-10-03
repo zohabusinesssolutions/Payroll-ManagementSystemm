@@ -4,7 +4,7 @@ import { addLeadingNumber, generatePassword } from "@/lib/common";
 import { hashPassword } from "@/lib/password";
 import prisma from "@/lib/prisma";
 import { EmailService } from "@/services/email";
-import { attendanceEnum } from "@prisma/client";
+import { AttendanceStatus } from "@prisma/client";
 import moment from "moment";
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
@@ -41,7 +41,7 @@ export async function GET() {
       }
       acc[employeeId][status] = _count.status;
       return acc;
-    }, {} as Record<string, Record<keyof typeof attendanceEnum, number>>);
+    }, {} as Record<string, Record<keyof typeof AttendanceStatus, number>>);
 
     // Merge attendance summary into each employee
     const enrichedEmployees: IEmployee[] = employees.map((emp) => ({
@@ -54,15 +54,15 @@ export async function GET() {
       salary: {
         id: emp.salary!.id,
         employeeId: emp.id,
-        basicSalary: emp.salary?.basicSalary || 0,
+        grossSalary: emp.salary?.grossSalary || 0,
         fuelAllowance: emp.salary?.fuelAllowance || 0,
         medicalAllowance: emp.salary?.medicalAllowance || 0,
-        perDaySalary: emp.salary?.perDaySalary || 0,
       },
       name: emp.user.name,
       email: emp.user.email,
       designation: emp.designation,
       department: emp.user.department.name,
+      bankAccount: emp.bankAccount || "",
       joiningDate: emp.joiningDate.toISOString(),
       resignDate: emp.resignDate ? emp.resignDate.toISOString() : undefined,
       status: emp.resignDate ? "resigned" : "active",
@@ -75,7 +75,7 @@ export async function GET() {
         LATE: 0,
       },
     }));
-
+    console.log(enrichedEmployees);
     return NextResponse.json({
       message: "Employee Fetched",
       data: enrichedEmployees,
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
       designation,
       startDate,
       resignDate,
-      basicSalary,
+      grossSalary,
       fuelAllowance,
       medicalAllowance,
     } = data;
@@ -171,10 +171,9 @@ export async function POST(request: NextRequest) {
           connectOrCreate: {
             where: { employeeId: employeeId },
             create: {
-              basicSalary,
+              grossSalary,
               fuelAllowance,
               medicalAllowance,
-              perDaySalary: basicSalary / 30, // Assuming 30 days in a month
             },
           },
         },

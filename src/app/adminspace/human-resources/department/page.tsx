@@ -83,7 +83,7 @@ export default function DepartmentPage() {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="my-12">
         <h1 className="text-2xl font-bold">Department Management</h1>
         <p className="text-muted-foreground">
           Manage departments and their access permissions. All permission fields

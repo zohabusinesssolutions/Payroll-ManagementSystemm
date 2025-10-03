@@ -10,6 +10,7 @@ export interface IEmployee {
   dateOfBirth: string;
   designation: string;
   department: string;
+  bankAccount: string;
   joiningDate: string;
   resignDate?: string;
   status: "active" | "resigned";

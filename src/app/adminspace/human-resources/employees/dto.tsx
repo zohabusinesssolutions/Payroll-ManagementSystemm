@@ -19,9 +19,10 @@ export const employeeSchema = z
     address: z.string().min(10, "Address must be at least 10 characters"),
     department: z.string().min(1, "Department is required"),
     designation: z.string().min(2, "Designation must be at least 2 characters"),
+    bankAccount: z.string().min(5, "Bank account must be at least 5 characters"),
     startDate: z.string().min(1, "Start date is required"),
     resignDate: z.string().optional(),
-    basicSalary: z.number().min(1, "Basic salary must be greater than 0"),
+    grossSalary: z.number().min(1, "Gross salary must be greater than 0"),
     fuelAllowance: z.number().min(0, "Fuel allowance cannot be negative"),
     medicalAllowance: z.number().min(0, "Medical allowance cannot be negative"),
   })
@@ -155,14 +156,21 @@ export const employeeConfig = ({
             type: "date",
             required: false, // Made optional
           },
+          {
+            name: "bankAccount",
+            label: "Bank Account",
+            type: "text",
+            required: true,
+            placeholder: "Eg. UBL",
+          }
         ],
       },
       {
         title: "Salary Details",
         fields: [
           {
-            name: "basicSalary",
-            label: "Basic Salary",
+            name: "grossSalary",
+            label: "Gross Salary",
             type: "number",
             className: "w-full",
             required: true,

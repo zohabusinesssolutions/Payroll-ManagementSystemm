@@ -24,7 +24,12 @@ export const PayrollSchema = z.object({
   halfDayDeduction: z.number(),
   loanDeduction: z.number(),
   netSalary: z.number(),
-  account: z.string(),
+  // Bank account fields
+  modeOfPayment: z.enum(["Cash", "Online"]).optional(),
+  accountTitle: z.string().optional(),
+  bankName: z.string().optional(),
+  accountNo: z.string().optional(),
+  branchCode: z.string().optional(),
 });
 
 // Drawer config (agar future me add/edit karna ho)
@@ -41,6 +46,17 @@ export const payrollConfig = ({
   onCancel: () => any;
   defaultValues?: IPayroll;
 }): AdminityDrawerConfig => {
+  // Prepare default values with bank account data
+  const preparedDefaultValues = defaultValues ? {
+    ...defaultValues,
+    // Map bank account data to form fields
+    modeOfPayment: defaultValues.modeOfPayment || (defaultValues.bankAccount ? "Online" : "Cash"),
+    bankName: defaultValues.bankAccount?.bankName || "",
+    accountTitle: defaultValues.bankAccount?.accountTitle || "",
+    accountNo: defaultValues.bankAccount?.accountNo || "",
+    branchCode: defaultValues.bankAccount?.branchCode || "",
+  } : undefined;
+
   return {
     title: mode === "create" ? "Add Payroll Entry" : "Edit Payroll Entry",
     description:
@@ -51,7 +67,7 @@ export const payrollConfig = ({
     side: "right",
     zodSchema: PayrollSchema,
     loading,
-    defaultValues: defaultValues || {
+    defaultValues: preparedDefaultValues || {
       name: "",
       designation: "",
       location: "",
@@ -72,6 +88,11 @@ export const payrollConfig = ({
       loanDeduction: 0,
       netSalary: 0,
       account: "",
+      modeOfPayment: "Cash",
+      accountTitle: "",
+      bankName: "",
+      accountNo: "",
+      branchCode: "",
     },
     fields: [
       {
@@ -178,6 +199,41 @@ export const payrollConfig = ({
         className: "w-full",
         required: true,
       },
+      {
+        name: "modeOfPayment",
+        label: "Mode of Payment",
+        type: "select",
+        className: "w-full",
+        options: [
+          { value: "Cash", label: "Cash" },
+          { value: "Online", label: "Online" },
+        ],
+        required: true,
+      },
+      {
+        name: "bankName",
+        label: "Bank Name (Required for Online)",
+        type: "text",
+        className: "w-full",
+      },
+      {
+        name: "accountTitle",
+        label: "Account Title (Required for Online)",
+        type: "text",
+        className: "w-full",
+      },
+      {
+        name: "accountNo",
+        label: "Account Number (Required for Online)",
+        type: "text",
+        className: "w-full",
+      },
+      {
+        name: "branchCode",
+        label: "Branch Code (Required for Online)",
+        type: "text",
+        className: "w-full",
+      },
     ],
     onSubmit,
     onCancel,
@@ -208,6 +264,16 @@ export interface IPayroll {
   loanDeduction: number;
   netSalary: number;
   account: string;
+  // Bank account fields
+  modeOfPayment: "Cash" | "Online";
+  bankDetails?: string;
+  bankAccount?: {
+    id: string;
+    bankName: string;
+    accountTitle: string;
+    accountNo: string;
+    branchCode: string;
+  } | null;
 }
 
 // Table columns
@@ -232,4 +298,6 @@ export const columns: ColumnDef<IPayroll>[] = [
   { accessorKey: "loanDeduction", header: "Loan Deduction" },
   { accessorKey: "netSalary", header: "Net Salary" },
   { accessorKey: "account", header: "Account" },
+  { accessorKey: "modeOfPayment", header: "Mode of Payment" },
+  { accessorKey: "bankDetails", header: "Bank Details" },
 ];

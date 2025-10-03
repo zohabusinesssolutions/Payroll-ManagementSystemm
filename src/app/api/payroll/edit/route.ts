@@ -18,6 +18,13 @@ interface EditPayrollRequest {
     fuelAmount?: number;
     account?: string;
     
+    // Bank account fields
+    modeOfPayment?: "Cash" | "Online";
+    bankName?: string;
+    accountTitle?: string;
+    accountNo?: string;
+    branchCode?: string;
+    
     // Derived fields (store differences in PayrollAdjustments)
     overtimeHours?: number;
     overtimeAmount?: number;
@@ -67,6 +74,7 @@ export async function PUT(request: NextRequest) {
       include: {
         user: true,
         salary: true,
+        bankAccount: true,
       },
     });
 
@@ -86,32 +94,37 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Separate simple fields from derived fields
-    const simpleFields = {
-      name: updates.name,
-      designation: updates.designation,
-      location: updates.location,
-      grossSalary: updates.grossSalary,
-      fuelEntitlement: updates.fuelEntitlement,
-      fuelAmount: updates.fuelAmount,
-      account: updates.account,
-    };
+      // Separate simple fields from derived fields and bank account fields
+      const simpleFields = {
+        name: updates.name,
+        designation: updates.designation,
+        location: updates.location,
+        grossSalary: updates.grossSalary,
+        fuelEntitlement: updates.fuelEntitlement,
+        fuelAmount: updates.fuelAmount,
+      };
 
-    const derivedFields = {
-      overtimeHours: updates.overtimeHours,
-      overtimeAmount: updates.overtimeAmount,
-      sundayCount: updates.sundayCount,
-      sundayAmount: updates.sundayAmount,
-      sundayFuel: updates.sundayFuel,
-      leaveCount: updates.leaveCount,
-      leaveDeduction: updates.leaveDeduction,
-      halfDayCount: updates.halfDayCount,
-      halfDayDeduction: updates.halfDayDeduction,
-      commissionAmount: updates.commissionAmount,
-      loanDeduction: updates.loanDeduction,
-    };
+      const bankAccountFields = {
+        modeOfPayment: updates.modeOfPayment,
+        bankName: updates.bankName,
+        accountTitle: updates.accountTitle,
+        accountNo: updates.accountNo,
+        branchCode: updates.branchCode,
+      };
 
-    // Perform updates in a transaction
+      const derivedFields = {
+        overtimeHours: updates.overtimeHours,
+        overtimeAmount: updates.overtimeAmount,
+        sundayCount: updates.sundayCount,
+        sundayAmount: updates.sundayAmount,
+        sundayFuel: updates.sundayFuel,
+        leaveCount: updates.leaveCount,
+        leaveDeduction: updates.leaveDeduction,
+        halfDayCount: updates.halfDayCount,
+        halfDayDeduction: updates.halfDayDeduction,
+        commissionAmount: updates.commissionAmount,
+        loanDeduction: updates.loanDeduction,
+      };    // Perform updates in a transaction
     const result = await prisma.$transaction(async (tx) => {
       // Handle simple fields - update respective tables
       const updatePromises: Promise<any>[] = [];
@@ -133,9 +146,6 @@ export async function PUT(request: NextRequest) {
       }
       if (simpleFields.location !== undefined) {
         employeeUpdates.location = simpleFields.location;
-      }
-      if (simpleFields.account !== undefined) {
-        employeeUpdates.bankAccount = simpleFields.account;
       }
       
       if (Object.keys(employeeUpdates).length > 0) {
@@ -159,13 +169,61 @@ export async function PUT(request: NextRequest) {
         salaryUpdates.fuelAllowance = simpleFields.fuelAmount;
       }
 
-      if (Object.keys(salaryUpdates).length > 0 && employee.salary) {
+      if (Object.keys(salaryUpdates).length > 0 && (employee as any).salary) {
         updatePromises.push(
           tx.salary.update({
-            where: { id: employee.salary.id },
+            where: { id: (employee as any).salary.id },
             data: salaryUpdates,
           })
         );
+      }
+
+      // Handle bank account operations based on mode of payment
+      if (bankAccountFields.modeOfPayment !== undefined) {
+        const currentBankAccount = employee.bankAccount;
+        
+        if (bankAccountFields.modeOfPayment === "Cash") {
+          // If switching to Cash mode, delete bank account if it exists
+          if (currentBankAccount) {
+            updatePromises.push(
+              tx.bankAccount.delete({
+                where: { employeeId: employeeId },
+              })
+            );
+          }
+        } else if (bankAccountFields.modeOfPayment === "Online") {
+          // Validate required bank account fields for Online mode
+          if (!bankAccountFields.bankName || !bankAccountFields.accountTitle || !bankAccountFields.accountNo || !bankAccountFields.branchCode) {
+            throw new Error("Bank Name, Account Title, Account Number, and Branch Code are required for Online payment mode");
+          }
+
+          const bankAccountData = {
+            bankName: bankAccountFields.bankName,
+            accountTitle: bankAccountFields.accountTitle,
+            accountNo: bankAccountFields.accountNo,
+            branchCode: bankAccountFields.branchCode,
+          };
+
+          if (currentBankAccount) {
+            // Update existing bank account
+            updatePromises.push(
+              tx.bankAccount.update({
+                where: { employeeId: employeeId },
+                data: bankAccountData,
+              })
+            );
+          } else {
+            // Create new bank account
+            updatePromises.push(
+              tx.bankAccount.create({
+                data: {
+                  employeeId: employeeId,
+                  ...bankAccountData,
+                },
+              })
+            );
+          }
+        }
       }
 
       // Wait for simple field updates to complete

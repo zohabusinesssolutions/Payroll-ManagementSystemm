@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const monthParam = searchParams.get("month");
     const yearParam = searchParams.get("year");
+    const bankName = searchParams.get("bankName");
 
     // Validate required parameters
     if (!monthParam || !yearParam) {
@@ -35,13 +36,23 @@ export async function GET(request: NextRequest) {
     }
 
     // Get payroll data for all employees
-    const payrollData = await calculateAllPayroll(month, year);
+    let payrollData = await calculateAllPayroll(month, year);
 
     if (!payrollData || payrollData.length === 0) {
       return NextResponse.json(
         { error: "No payroll data found for the specified month and year" },
         { status: 404 }
       );
+    }
+
+    // Filter by bank name if provided
+    if (bankName && bankName.trim()) {
+      payrollData = payrollData.filter((payroll) => {
+        const bankNameLower = bankName.toLowerCase().trim();
+        // Check if the payroll has bank details and bank name contains the search term
+        return payroll.bankDetails && 
+               payroll.bankDetails.toLowerCase().includes(bankNameLower);
+      });
     }
 
     // Create CSV headers
@@ -66,7 +77,8 @@ export async function GET(request: NextRequest) {
       "Half Day Deduction",
       "Loan Deduction",
       "Net Salary",
-      "Account",
+      "Mode of Payment",
+      "Bank Details",
     ];
 
     // Create CSV rows
@@ -91,7 +103,8 @@ export async function GET(request: NextRequest) {
       item.halfDayDeduction,
       item.loanDeduction,
       item.netSalary,
-      item.account,
+      item.modeOfPayment,
+      item.bankDetails || "", // Empty string if Cash mode or no bank account
     ]);
 
     // Combine headers and rows

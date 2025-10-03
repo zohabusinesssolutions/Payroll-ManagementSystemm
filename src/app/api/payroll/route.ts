@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
     const employeeId = searchParams.get("employeeId");
     const monthParam = searchParams.get("month");
     const yearParam = searchParams.get("year");
+    const bankName = searchParams.get("bankName");
 
     // Validate required parameters
     if (!monthParam || !yearParam) {
@@ -73,13 +74,24 @@ export async function GET(request: NextRequest) {
     }
 
     // If no employeeId, get payroll for all employees
-    const payrollData = await calculateAllPayroll(month, year);
+    let payrollData = await calculateAllPayroll(month, year);
+
+    // Filter by bank name if provided
+    if (bankName && bankName.trim()) {
+      payrollData = payrollData.filter((payroll) => {
+        const bankNameLower = bankName.toLowerCase().trim();
+        // Check if the payroll has bank details and bank name contains the search term
+        return payroll.bankDetails && 
+               payroll.bankDetails.toLowerCase().includes(bankNameLower);
+      });
+    }
 
     return NextResponse.json({
       data: payrollData,
       total: payrollData.length,
       month,
       year,
+      ...(bankName && { bankName }),
     });
   } catch (error) {
     console.error("Error fetching payroll:", error);

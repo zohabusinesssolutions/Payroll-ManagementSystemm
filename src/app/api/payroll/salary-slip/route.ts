@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
       include: {
         user: true,
         salary: true,
+        bankAccount: true,
       },
     });
 
@@ -126,7 +127,6 @@ export async function POST(request: NextRequest) {
           netSalary: finalNetSalary,
           bonus: bonus,
           bonusType: bonusType || null,
-          account: payrollData.account,
           updatedAt: new Date(),
         },
         include: {
@@ -161,7 +161,6 @@ export async function POST(request: NextRequest) {
           netSalary: finalNetSalary,
           bonus: bonus,
           bonusType: bonusType || null,
-          account: payrollData.account,
           status: "UNPAID",
         },
         include: {
@@ -208,6 +207,8 @@ export async function POST(request: NextRequest) {
       }),
       id: employeeId,
       month: month,
+      modeOfPayment: employee.bankAccount ? "Online" : "Cash",
+      
     });
 
   } catch (error) {

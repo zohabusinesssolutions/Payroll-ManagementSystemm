@@ -19,7 +19,6 @@ export const employeeSchema = z
     address: z.string().min(10, "Address must be at least 10 characters"),
     department: z.string().min(1, "Department is required"),
     designation: z.string().min(2, "Designation must be at least 2 characters"),
-    bankAccount: z.string().min(5, "Bank account must be at least 5 characters"),
     startDate: z.string().min(1, "Start date is required"),
     resignDate: z.string().optional(),
     grossSalary: z.number().min(1, "Gross salary must be greater than 0"),

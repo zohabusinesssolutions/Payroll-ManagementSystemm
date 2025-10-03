@@ -231,6 +231,7 @@ interface SalarySlipData {
   generatedDate: string
   id?: string
   month?: number
+  modeOfPayment: "Cash" | "Online"
 }
 
 interface SalarySlipPDFProps {
@@ -284,7 +285,7 @@ const SalarySlipPDF: React.FC<SalarySlipPDFProps> = ({ data }) => (
           </View>
           <View style={styles.employeeRow}>
             <Text style={styles.employeeLabel}>Mode of Payment :</Text>
-            <Text style={styles.employeeValue}>Online</Text>
+            <Text style={styles.employeeValue}>{data.modeOfPayment}</Text>
           </View>
           <View style={styles.employeeRow}>
             <Text style={styles.employeeLabel}>Leaves Available :</Text>

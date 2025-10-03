@@ -567,7 +567,47 @@ async function assignDepartments() {
   }
 }
 
-assignDepartments()
+async function seedBankAccounts() {
+  // Fetch employees
+  const employees = await prisma.employee.findMany(
+    {
+      include: { user: true },
+    }
+  );
+
+  // Sample banks
+  const banks = [
+    { bankName: "Meezan Bank", branchCode: "001" },
+    { bankName: "UBL", branchCode: "002" },
+    { bankName: "HBL", branchCode: "003" },
+    { bankName: "MCB", branchCode: "004" },
+  ];
+
+  let count = 0;
+
+  for (const emp of employees) {
+    // Assign bank account to every 3rd employee (dummy logic)
+    if (count % 3 === 0) {
+      const bank = banks[count % banks.length];
+
+      await prisma.bankAccount.create({
+        data: {
+          employeeId: emp.id,
+          bankName: bank.bankName,
+          accountTitle: emp.user.name.toUpperCase(),
+          accountNo: `10020${Math.floor(Math.random() * 1000000)}`,
+          branchCode: bank.branchCode,
+        },
+      });
+    }
+
+    count++;
+  }
+
+  console.log("✅ Bank accounts seeded successfully!");
+}
+
+seedBankAccounts()
   .then(() => {
     console.log('Successfully seeded');
     process.exit(0);

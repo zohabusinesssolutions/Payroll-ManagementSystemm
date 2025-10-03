@@ -427,7 +427,7 @@ export function AdminityDataTable<T extends BaseTableData>({
       </div>
 
       {/* Pagination */}
-      {totalCount && totalCount > pageSize && (
+      {/* {totalCount && totalCount > pageSize && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
             Showing {(currentPage - 1) * pageSize + 1} to{" "}
@@ -478,7 +478,7 @@ export function AdminityDataTable<T extends BaseTableData>({
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Drawer */}
       {drawerConfig && (

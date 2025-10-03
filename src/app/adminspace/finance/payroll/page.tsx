@@ -29,7 +29,6 @@ interface Employee {
   id: string;
   name: string;
   employeeId: string;
-  account: string;
 }
 
 export default function PayrollPage() {
@@ -50,6 +49,7 @@ export default function PayrollPage() {
   const [exporting, setExporting] = useState<boolean>(false);
   const [customPayrollData, setCustomPayrollData] = useState<IPayroll[] | null>(null);
   const [searching, setSearching] = useState<boolean>(false);
+  const [bankNameSearchQuery, setBankNameSearchQuery] = useState<string>("");
 
   // Use original API to fetch payroll data with filters applied
   const { data, loading, refresh } = useRequest(
@@ -96,7 +96,6 @@ export default function PayrollPage() {
   const filteredDataWithoutSerial = searchQuery 
     ? payrollData.filter((item) =>
         item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.account.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.id.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : payrollData;
@@ -116,7 +115,6 @@ export default function PayrollPage() {
           id: emp.employeeId,
           name: emp.name,
           employeeId: emp.employeeId,
-          account: emp.bankAccount,
         }));
         setEmployees(employeeList);
       } catch (error) {
@@ -132,8 +130,7 @@ export default function PayrollPage() {
   const filteredEmployees = employees.filter(
     (emp) =>
       emp.name.toLowerCase().includes(employeeSearchQuery.toLowerCase()) ||
-      emp.employeeId.toLowerCase().includes(employeeSearchQuery.toLowerCase()) ||
-      emp.account.toLowerCase().includes(employeeSearchQuery.toLowerCase())
+      emp.employeeId.toLowerCase().includes(employeeSearchQuery.toLowerCase()) 
   );
 
   // Handle employee selection
@@ -158,6 +155,11 @@ export default function PayrollPage() {
 
       if (!allEmployeesMode && selectedEmployee) {
         queryParams.employeeId = selectedEmployee.id;
+      }
+
+      // Add bank name filter if provided
+      if (bankNameSearchQuery.trim()) {
+        queryParams.bankName = bankNameSearchQuery.trim();
       }
 
       const response = await apiService.payroll.get(queryParams);
@@ -195,10 +197,27 @@ export default function PayrollPage() {
         setExporting(false);
         return;
       }
-      await apiService.payroll.exportCSV({
+
+      // Get the currently filtered/displayed data
+      const dataToExport = customPayrollData || payrollData;
+      
+      if (!dataToExport || dataToExport.length === 0) {
+        toast.error("No data to export. Please ensure payroll data is loaded.");
+        setExporting(false);
+        return;
+      }
+
+      // Call the export API with filtered data
+      const exportParams: { month: number; year: number; bankName?: string } = {
         month: selectedMonth,
         year: selectedYear,
-      });
+      };
+      
+      if (bankNameSearchQuery.trim()) {
+        exportParams.bankName = bankNameSearchQuery.trim();
+      }
+      
+      await apiService.payroll.exportCSV(exportParams);
       toast.success("CSV file downloaded successfully");
     } catch (error: any) {
       console.error("Error exporting CSV:", error);
@@ -437,6 +456,21 @@ export default function PayrollPage() {
             </div>
           )}
 
+          {/* Bank Name Search Filter */}
+          <div className="space-y-2">
+            <Label htmlFor="bankName">Bank Name Search</Label>
+            <Input
+              id="bankName"
+              placeholder="Search by bank name... (e.g., Meezan, HBL, UBL)"
+              value={bankNameSearchQuery}
+              onChange={(e) => setBankNameSearchQuery(e.target.value)}
+            />
+            {bankNameSearchQuery && (
+              <div className="text-sm text-blue-600">
+                Filter: Employees with bank name containing "{bankNameSearchQuery}"
+              </div>
+            )}
+          </div>
 
           
 

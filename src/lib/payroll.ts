@@ -23,7 +23,15 @@ export interface PayrollCalculation {
   halfDayDeduction: number;
   loanDeduction: number;
   netSalary: number;
-  account: string;
+  // New bank account fields
+  modeOfPayment: "Cash" | "Online";
+  bankDetails?: string; // bankName + accountNo for Online mode
+  bankAccount?: {
+    id: string;
+    bankName: string;
+    accountNo: string;
+    branchCode: string;
+  } | null;
 }
 
 /**
@@ -36,36 +44,37 @@ export async function calculatePayroll(
 ): Promise<PayrollCalculation | null> {
   try {
     // Get employee with related data
-    const employee = await prisma.employee.findUnique({
-      where: { id: employeeId },
-      include: {
-        user: true,
-        salary: true,
-      },
+  const employee = await prisma.employee.findUnique({
+    where: { id: employeeId },
+    include: {
+      user: true,
+      salary: true,
+      bankAccount: true,
+    },
+  });
+  
+  if (!employee || !employee.salary) {
+    return null;
+  }
+
+  // Get fuel rate from settings
+  let fuelRate = 0;
+  try {
+    const fuelRateSetting = await prisma.setting.findUnique({
+      where: { title: "FUEL_PRICE" },
     });
+    fuelRate = fuelRateSetting ? parseFloat(fuelRateSetting.value) : 300; // Default to 300
+  } catch (error) {
+    fuelRate = 300; // Default fallback
+  }
 
-    if (!employee || !employee.salary) {
-      return null;
-    }
-
-    // Get fuel rate from settings
-    let fuelRate = 0;
-    try {
-      const fuelRateSetting = await prisma.setting.findUnique({
-        where: { title: "FUEL_PRICE" },
-      });
-      fuelRate = fuelRateSetting ? parseFloat(fuelRateSetting.value) : 300; // Default to 300
-    } catch (error) {
-      fuelRate = 300; // Default fallback
-    }
-
-    // Basic salary information
-    const grossSalary = employee.salary.grossSalary; 
-    const fuelEntitlement = employee.salary.fuelEntitlement || null;
-    let fuelAmount = 0;
-    if (fuelEntitlement === null) {
-      fuelAmount = employee.salary.fuelAllowance || 0;
-    } else {
+  // Gross salary information
+  const grossSalary = employee.salary.grossSalary; 
+  const fuelEntitlement = employee.salary.fuelEntitlement || null;
+  let fuelAmount = 0;
+  if (fuelEntitlement === null) {
+    fuelAmount = employee.salary.fuelAllowance || 0;
+  } else {
       fuelAmount = fuelEntitlement * fuelRate;
     }
 
@@ -202,11 +211,17 @@ export async function calculatePayroll(
       adjustedValues.halfDayDeduction -
       adjustedValues.loanDeduction;
 
+    // Determine mode of payment and bank details
+    const modeOfPayment: "Cash" | "Online" = employee.bankAccount ? "Online" : "Cash";
+    const bankDetails = employee.bankAccount
+      ? `${employee.bankAccount.bankName} - ${employee.bankAccount.accountNo}`
+      : undefined;
+
     return {
       id: employee.id,
       name: employee.user.name,
       designation: employee.designation,
-      location: (employee as any).location || "Head Office",
+      location: employee.location || "Head Office",
       grossSalary,
       fuelEntitlement,
       fuelRate,
@@ -223,7 +238,9 @@ export async function calculatePayroll(
       halfDayDeduction: Math.round(adjustedValues.halfDayDeduction * 100) / 100,
       loanDeduction: adjustedValues.loanDeduction,
       netSalary: Math.round(netSalary * 100) / 100,
-      account: (employee as any).bankAccount || "UBL", // Default account
+      modeOfPayment,
+      bankDetails,
+      bankAccount: employee.bankAccount,
     };
   } catch (error) {
     console.error("Error calculating payroll:", error);

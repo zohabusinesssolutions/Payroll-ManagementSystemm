@@ -69,7 +69,7 @@ class ApiService {
       const q = encodeQueryData(query);
       return axiosService.get<any>(`/payroll?${q}`);
     },
-    exportCSV: async (query: { month: number; year: number }) => {
+    exportCSV: async (query: { month: number; year: number; bankName?: string }) => {
       try {
         const q = encodeQueryData(query);
         const response = await fetch(`/api/payroll/export?${q}`, {

@@ -134,7 +134,6 @@ model Employee {
   resignDate    DateTime?
   designation   String
   location      String?
-  bankAccount   String?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   deletedAt     DateTime?
@@ -147,20 +146,23 @@ model Employee {
   salarySlip    SalarySlip[]    @relation("EmployeeSalarySlip")
   payrollAdjustments PayrollAdjustments[] @relation("EmployeePayrollAdjustments")
 
+  bankAccount   BankAccount?   @relation("EmployeeBankAccount")
+
   @@map("employee")
-  BankAccount BankAccount[]
 }
 
 model BankAccount {
   id          String   @id @default(cuid())
   employeeId  String   @unique
   bankName    String
+  accountTitle String
   accountNo   String
   branchCode  String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
+  employee    Employee @relation("EmployeeBankAccount", fields: [employeeId], references: [id], onDelete: Cascade) // 👈 back relation
+  
   @@map("bank_account")
 }
 

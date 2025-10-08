@@ -12,7 +12,7 @@ import {
     ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, Clock, Edit, FileText, QrCode, Users } from "lucide-react";
+import { Calendar, Clock, Edit, FileText, QrCode, Users, Landmark } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 
@@ -255,6 +255,24 @@ export function EmployeeCard({
             </div>
             <span className="font-medium">{employee.department}</span>
           </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Landmark className="h-4 w-4 text-muted-foreground" />
+              <span>Payment Mode:</span>
+            </div>
+            <Badge variant={employee.bankAccount ? "default" : "secondary"} className="text-xs">
+              {employee.bankAccount ? "Online" : "Cash"}
+            </Badge>
+          </div>
+          {employee.bankAccount && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Landmark className="h-4 w-4 text-muted-foreground" />
+                <span>Bank:</span>
+              </div>
+              <span className="font-medium">{employee.bankAccount.bankName}</span>
+            </div>
+          )}
         </div>
 
         <Separator />

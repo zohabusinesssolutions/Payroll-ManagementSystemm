@@ -1,5 +1,14 @@
 import { ISalary } from "./ISalary";
 
+export interface IBankAccount {
+  id: string;
+  bankName: string;
+  accountTitle: string;
+  accountNo: string;
+  branchCode: string;
+  modeOfPayment: "Cash" | "Online";
+}
+
 export interface IEmployee {
   id: string;
   employeeId: string;
@@ -10,7 +19,10 @@ export interface IEmployee {
   dateOfBirth: string;
   designation: string;
   department: string;
-  bankAccount: string;
+  departmentId: string;
+  maritalStatus?: string;
+  address?: string;
+  bankAccount?: IBankAccount;
   joiningDate: string;
   resignDate?: string;
   status: "active" | "resigned";

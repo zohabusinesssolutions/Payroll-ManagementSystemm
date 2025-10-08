@@ -15,7 +15,8 @@ export async function GET() {
     const employees = await prisma.employee.findMany({
       include: {
         user: { include: { department: true } },
-        salary: true, // include salary or anything else you need
+        salary: true,
+        bankAccount: true, // Include bank account
       },
     });
 
@@ -50,7 +51,8 @@ export async function GET() {
       phoneNo: emp.user.phoneNo,
       cnicNo: emp.user.cnicNo,
       dateOfBirth: emp.user.dateOfBirth.toISOString(),
-      address: emp.user.address,
+      address: emp.user.address || "",
+      maritalStatus: emp.user.maritalStatus,
       salary: {
         id: emp.salary!.id,
         employeeId: emp.id,
@@ -62,7 +64,15 @@ export async function GET() {
       email: emp.user.email,
       designation: emp.designation,
       department: emp.user.department.name,
-      bankAccount: emp.bankAccount || "",
+      departmentId: emp.user.departmentId,
+      bankAccount: emp.bankAccount ? {
+        id: emp.bankAccount.id,
+        bankName: emp.bankAccount.bankName,
+        accountTitle: emp.bankAccount.accountTitle,
+        accountNo: emp.bankAccount.accountNo,
+        branchCode: emp.bankAccount.branchCode,
+        modeOfPayment: "Online" as const,
+      } : undefined,
       joiningDate: emp.joiningDate.toISOString(),
       resignDate: emp.resignDate ? emp.resignDate.toISOString() : undefined,
       status: emp.resignDate ? "resigned" : "active",
@@ -112,6 +122,11 @@ export async function POST(request: NextRequest) {
       grossSalary,
       fuelAllowance,
       medicalAllowance,
+      modeOfPayment,
+      bankName,
+      accountTitle,
+      accountNo,
+      branchCode,
     } = data;
 
     const user_exists = await prisma.user.findFirst({
@@ -177,6 +192,18 @@ export async function POST(request: NextRequest) {
             },
           },
         },
+        ...(modeOfPayment === "Online" && bankName && accountTitle && accountNo && branchCode
+          ? {
+              bankAccount: {
+                create: {
+                  bankName,
+                  accountTitle,
+                  accountNo,
+                  branchCode,
+                },
+              },
+            }
+          : {}),
       },
       include: {
         user: { include: { department: true } },

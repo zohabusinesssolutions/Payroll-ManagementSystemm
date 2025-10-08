@@ -24,6 +24,13 @@ export const employeeSchema = z
     grossSalary: z.number().min(1, "Gross salary must be greater than 0"),
     fuelAllowance: z.number().min(0, "Fuel allowance cannot be negative"),
     medicalAllowance: z.number().min(0, "Medical allowance cannot be negative"),
+    modeOfPayment: z.enum(["Cash", "Online"], {
+      errorMap: () => ({ message: "Please select mode of payment" }),
+    }),
+    bankName: z.string().optional(),
+    accountTitle: z.string().optional(),
+    accountNo: z.string().optional(),
+    branchCode: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -35,6 +42,28 @@ export const employeeSchema = z
     {
       message: "Resign date must be after start date",
       path: ["resignDate"],
+    }
+  )
+  .refine(
+    (data) => {
+      // If payment mode is Online, all bank fields are required
+      if (data.modeOfPayment === "Online") {
+        return (
+          data.bankName &&
+          data.bankName.trim().length > 0 &&
+          data.accountTitle &&
+          data.accountTitle.trim().length > 0 &&
+          data.accountNo &&
+          data.accountNo.trim().length > 0 &&
+          data.branchCode &&
+          data.branchCode.trim().length > 0
+        );
+      }
+      return true;
+    },
+    {
+      message: "All bank details are required when payment mode is Online",
+      path: ["bankName"],
     }
   );
 
@@ -155,13 +184,50 @@ export const employeeConfig = ({
             type: "date",
             required: false, // Made optional
           },
+        ],
+      },
+      {
+        title: "Bank Details",
+        fields: [
           {
-            name: "bankAccount",
-            label: "Bank Account",
-            type: "text",
+            name: "modeOfPayment",
+            label: "Mode of Payment",
+            type: "select",
             required: true,
-            placeholder: "Eg. UBL",
-          }
+            placeholder: "Select payment mode",
+            options: [
+              { label: "Cash", value: "Cash" },
+              { label: "Online", value: "Online" },
+            ],
+          },
+          {
+            name: "bankName",
+            label: "Bank Name",
+            type: "text",
+            required: false,
+            placeholder: "e.g., United Bank Limited",
+          },
+          {
+            name: "accountTitle",
+            label: "Account Title",
+            type: "text",
+            required: false,
+            placeholder: "e.g., John Doe",
+          },
+          {
+            name: "accountNo",
+            label: "Account Number",
+            type: "text",
+            required: false,
+            placeholder: "e.g., 1234567890",
+          },
+          {
+            name: "branchCode",
+            label: "Branch Code",
+            type: "text",
+            required: false,
+            placeholder: "e.g., 0123",
+          },
         ],
       },
       {

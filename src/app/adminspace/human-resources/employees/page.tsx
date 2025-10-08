@@ -56,6 +56,7 @@ export default function EmployeePage() {
 
   const [isDrawerOpen, { setTrue: openDrawer, setFalse: closeDrawer }] =
     useBoolean(false);
+
   const [formData, setFormData] = useState<Record<string, any> | undefined>(
     undefined
   );
@@ -117,22 +118,28 @@ export default function EmployeePage() {
 
     // Map employee data to form format
     const mappedData = {
-      name: employee.name,
-      email: employee.email,
-      phoneNo: employee.phoneNo,
-      cnicNo: employee.cnicNo,
-      dateOfBirth: employee.dateOfBirth,
-      maritalStatus: employee.maritalStatus,
-      address: employee.address,
-      department: employee.department,
-      designation: employee.designation,
-      startDate: employee.joiningDate,
-      resignDate: employee.resignDate,
-      basicSalary: employee.salary?.basicSalary || 0,
+      name: employee.name || "",
+      email: employee.email || "",
+      phoneNo: employee.phoneNo || "",
+      cnicNo: employee.cnicNo || "",
+      dateOfBirth: employee.dateOfBirth || "",
+      maritalStatus: employee.maritalStatus || "",
+      address: employee.address || "",
+      department: employee.departmentId || "",
+      designation: employee.designation || "",
+      startDate: employee.joiningDate || "",
+      resignDate: employee.resignDate || "",
+      grossSalary: employee.salary?.grossSalary || 0,
       fuelAllowance: employee.salary?.fuelAllowance || 0,
       medicalAllowance: employee.salary?.medicalAllowance || 0,
+      modeOfPayment: employee.bankAccount ? "Online" : "Cash",
+      bankName: employee.bankAccount?.bankName || "",
+      accountTitle: employee.bankAccount?.accountTitle || "",
+      accountNo: employee.bankAccount?.accountNo || "",
+      branchCode: employee.bankAccount?.branchCode || "",
     };
 
+    console.log("📋 Mapped form data:", mappedData);
     setFormData(mappedData);
     openDrawer();
   };
@@ -224,6 +231,7 @@ export default function EmployeePage() {
         open={isDrawerOpen}
         onOpenChange={handleCloseDrawer}
         data={formData}
+        mode={mode}
       />
     </AdminityLoader>
   );

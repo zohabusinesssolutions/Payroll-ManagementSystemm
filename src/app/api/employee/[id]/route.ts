@@ -22,17 +22,30 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
             designation,
             startDate,
             resignDate,
-            basicSalary,
+            grossSalary,
             fuelAllowance,
             medicalAllowance,
+            modeOfPayment,
+            bankName,
+            accountTitle,
+            accountNo,
+            branchCode,
         } = data;
 
         const user_exists = await prisma.user.findFirst({
-            where: { id: params.id, deletedAt: null },
-            select: { employee: { select: { id: true } } }
+            where: { id: params.id },
+            select: { 
+                employee: { 
+                    select: { 
+                        id: true,
+                        bankAccount: true 
+                    } 
+                } 
+            }
         });
 
         const employeeId = user_exists?.employee?.id;
+        const existingBankAccount = user_exists?.employee?.bankAccount;
 
         if (!employeeId) {
             return NextResponse.json(
@@ -57,6 +70,39 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
             },
         });
 
+        // Handle bank account based on payment mode
+        if (modeOfPayment === "Cash") {
+            // Delete existing bank account if mode is Cash
+            if (existingBankAccount) {
+                await prisma.bankAccount.delete({
+                    where: { employeeId },
+                });
+            }
+        } else if (modeOfPayment === "Online" && bankName && accountTitle && accountNo && branchCode) {
+            // Create or update bank account if mode is Online
+            if (existingBankAccount) {
+                await prisma.bankAccount.update({
+                    where: { employeeId },
+                    data: {
+                        bankName,
+                        accountTitle,
+                        accountNo,
+                        branchCode,
+                    },
+                });
+            } else {
+                await prisma.bankAccount.create({
+                    data: {
+                        employeeId,
+                        bankName,
+                        accountTitle,
+                        accountNo,
+                        branchCode,
+                    },
+                });
+            }
+        }
+
         await prisma.employee.update({
             where: { id: employeeId },
             data: {
@@ -67,10 +113,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
                     update: {
                         where: { employeeId },
                         data: {
-                            basicSalary,
+                            grossSalary,
                             fuelAllowance,
                             medicalAllowance,
-                            perDaySalary: basicSalary / 30,
                         },
                     },
                 },
@@ -98,7 +143,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     try {
         
         const user_exists = await prisma.user.findFirst({
-            where: { id: params.id, deletedAt: null },
+            where: { id: params.id },
             select: { employee: { select: { id: true } } }
         });
 

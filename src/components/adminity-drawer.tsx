@@ -186,6 +186,19 @@ export function AdminityDrawer({ config, trigger, open, onOpenChange, data, mode
     }
   }, [open, data, mode])
 
+  // Watch for modeOfPayment changes and clear bank fields when set to Cash
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "modeOfPayment" && value.modeOfPayment === "Cash") {
+        form.setValue("bankName", "")
+        form.setValue("accountTitle", "")
+        form.setValue("accountNo", "")
+        form.setValue("branchCode", "")
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [form])
+
   const handleSubmit = form.handleSubmit(async (formData) => {
     try {
       setIsSubmitting(true)
@@ -253,9 +266,22 @@ export function AdminityDrawer({ config, trigger, open, onOpenChange, data, mode
             field.className?.includes("w-full") ||
             field.className?.includes("col-span-2")
 
+          // Watch for modeOfPayment changes to conditionally disable bank fields
+          const modeOfPayment = form.watch("modeOfPayment")
+          const shouldDisable = 
+            field.disabled || 
+            (modeOfPayment === "Cash" && 
+             ["bankName", "accountTitle", "accountNo", "branchCode"].includes(field.name))
+
+          // Create field config with dynamic disabled state
+          const fieldConfig = {
+            ...field,
+            disabled: shouldDisable
+          }
+
           return (
             <div key={field.name} className={cn(isFullWidth ? "md:col-span-2" : "col-span-1", field.className)}>
-              <FormFieldRenderer field={field} control={form.control} errors={form.formState.errors} />
+              <FormFieldRenderer field={fieldConfig} control={form.control} errors={form.formState.errors} />
             </div>
           )
         })}

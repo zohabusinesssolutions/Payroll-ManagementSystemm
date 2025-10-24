@@ -144,12 +144,12 @@ export default function EmployeePage() {
     openDrawer();
   };
 
-  const handleDeleteEmployee = (user: any) => {
-    if (confirm(`Are you sure you want to delete ${user.name}?`)) {
-      // TODO: Implement delete functionality
-      console.log("🗑️ Deleting employee:", user);
-    }
-  };
+  // const handleDeleteEmployee = (user: any) => {
+  //   if (confirm(`Are you sure you want to delete ${user.name}?`)) {
+  //     // TODO: Implement delete functionality
+  //     console.log("🗑️ Deleting employee:", user);
+  //   }
+  // };
 
   const handleCloseDrawer = (open: boolean) => {
     if (!open) {

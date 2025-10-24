@@ -8,10 +8,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {
-  ChevronFirst,
-  ChevronLast,
-  ChevronLeft,
-  ChevronRight,
   MoreHorizontal,
   Plus,
   Search,
@@ -152,8 +148,6 @@ export function AdminityDataTable<T extends BaseTableData>({
   actions,
   totalCount,
   pageSize = 10,
-  currentPage = 1,
-  onPageChange,
 }: AdminityDataTableProps<T>) {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [selectedItem, setSelectedItem] = useState<T | null>(null);
@@ -262,7 +256,7 @@ export function AdminityDataTable<T extends BaseTableData>({
     };
 
     return [...baseColumns, actionsColumn];
-  }, [baseColumns, actions]);
+  }, [baseColumns, actions, handleDeleteClick]);
 
   const table = useReactTable({
     data,

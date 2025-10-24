@@ -65,6 +65,7 @@ export async function calculatePayroll(
     });
     fuelRate = fuelRateSetting ? parseFloat(fuelRateSetting.value) : 300; // Default to 300
   } catch (error) {
+    console.log(error)
     fuelRate = 300; // Default fallback
   }
 
@@ -125,13 +126,13 @@ export async function calculatePayroll(
     const hourlySalary = dailySalary / 8;
 
     // Calculate overtime amount
-    let overtimeAmount = overtimeHours * hourlySalary;
+    const overtimeAmount = overtimeHours * hourlySalary;
 
     // Calculate Sunday amount
-    let sundayAmount = sundayCount * (dailySalary* 2);
+    const sundayAmount = sundayCount * (dailySalary * 2);
 
     // Calculate Sunday fuel amount
-    let sundayFuel = sundayCount * fuelRate;
+    const sundayFuel = sundayCount * fuelRate;
 
     // Get leave records for the month
     const leaveRecords = await prisma.leavesApplied.findMany({
@@ -170,13 +171,13 @@ export async function calculatePayroll(
       }
     });
     
-    let leaveDeduction = leaveCount * dailySalary;
-    let halfDayDeduction = halfDayCount * (dailySalary / 2);
+    const leaveDeduction = leaveCount * dailySalary;
+    const halfDayDeduction = halfDayCount * (dailySalary / 2);
 
     // For now, commission and loan deduction are set to 0
     // These can be enhanced later with proper models
-    let commissionAmount = 0;
-    let loanDeduction = 0;
+    const commissionAmount = 0;
+    const loanDeduction = 0;
 
     // Get payroll adjustments for this employee, month, and year
     const adjustments = await getPayrollAdjustments(employeeId, month, year);

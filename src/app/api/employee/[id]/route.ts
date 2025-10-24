@@ -5,8 +5,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         const body = await request.json();
         const data = employeeSchema.parse(body);
 
@@ -33,7 +34,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         } = data;
 
         const user_exists = await prisma.user.findFirst({
-            where: { id: params.id },
+            where: { id },
             select: { 
                 employee: { 
                     select: { 
@@ -55,7 +56,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         }
 
         await prisma.user.update({
-            where: { id: params.id },
+            where: { id },
             data: {
                 name,
                 email,
@@ -139,11 +140,12 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 }
 
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         
         const user_exists = await prisma.user.findFirst({
-            where: { id: params.id },
+            where: { id },
             select: { employee: { select: { id: true } } }
         });
 
@@ -157,7 +159,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         }
 
         await prisma.user.delete({
-            where: { id: params.id }
+            where: { id }
         });
 
         return NextResponse.json({

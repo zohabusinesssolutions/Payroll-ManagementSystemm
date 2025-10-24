@@ -42,33 +42,14 @@ export default function AttendanceTable() {
       moment(month).endOf("month")
     )
   );
-  const [users, setUsers] = useState<User[]>(initialUsers);
-  const [selectedRecord, setSelectedRecord] = useState<{
+  const [users, ] = useState<User[]>(initialUsers);
+  const [, setSelectedRecord] = useState<{
     userId: number;
     dateIndex: number;
     inTime: string;
     outTime: string;
   } | null>(null);
 
-  // const handleUpdateAttendance = () => {
-  //   if (!selectedRecord) return;
-
-  //   setUsers((prevUsers) =>
-  //     prevUsers.map((user) => {
-  //       if (user.id === selectedRecord.userId) {
-  //         const updatedAttendance = [...user.attendance];
-  //         updatedAttendance[selectedRecord.dateIndex] = {
-  //           ...updatedAttendance[selectedRecord.dateIndex],
-  //           inTime: selectedRecord.inTime,
-  //           outTime: selectedRecord.outTime,
-  //         };
-  //         return { ...user, attendance: updatedAttendance };
-  //       }
-  //       return user;
-  //     })
-  //   );
-  //   setSelectedRecord(null);
-  // };
 
   const openPopover = (
     userId: number,
@@ -101,7 +82,7 @@ export default function AttendanceTable() {
         </p>
       </div>
       <AttendanceFilter
-        onSubmit={({ month: monthStr, search }) => {
+        onSubmit={({ month: monthStr }) => {
           setMonth(moment(monthStr, "YYYY-MM"));
         }}
         defaultMonth={month.toDate()}
@@ -142,7 +123,7 @@ export default function AttendanceTable() {
                       </PopoverTrigger>
                       <PopoverContent className="w-80">
                         <AttendanceForm
-                          onSubmit={(e) => {}}
+                          onSubmit={() => {}}
                           userName={user.name}
                           initialInTime={record.inTime}
                           initialOutTime={record.outTime}

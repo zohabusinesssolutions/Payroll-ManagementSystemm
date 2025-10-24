@@ -2,13 +2,14 @@ import { expenseSchema } from "@/app/adminspace/finance/expenses/dto";
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         const body = await request.json();
         const data = expenseSchema.parse(body);
 
         const expense_exists = await prisma.expense.findFirst({
-            where: { id: params.id }
+            where: { id }
         });
 
         if (!expense_exists) {
@@ -18,9 +19,15 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
             );
         }
 
-        await prisma.expense.update({ where: { id: params.id }, data })
+        // Convert month string to number
+        const updateData = {
+            ...data,
+            month: parseInt(data.month, 10),
+        };
+
+        await prisma.expense.update({ where: { id }, data: updateData })
         return NextResponse.json({
-            message: "Project Updated",
+            message: "Expense Updated",
         });
     } catch (error) {
         return NextResponse.json(
@@ -32,11 +39,12 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
 
         const expense_exists = await prisma.expense.findFirst({
-            where: { id: params.id }
+            where: { id }
         });
 
         if (!expense_exists) {
@@ -45,7 +53,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
                 { status: 404 }
             );
         }
-        await prisma.expense.delete({ where: { id: params.id } });
+        await prisma.expense.delete({ where: { id } });
         return NextResponse.json({
             message: "expense DELETED",
         });

@@ -51,7 +51,7 @@ export const authConfig: NextAuthOptions = {
       if (account?.provider === "credentials") return true;
 
       // For social providers: check if user exists in your DB
-      const existingUser:any = await prisma.user.findUnique({ where: { email: user.email! }, include: { department: { include: { permissions: true } } }, });
+      const existingUser:any = await prisma.user.findFirst({ where: { email: user.email! }, include: { department: { include: { permissions: true } } }, });
 
       if (!existingUser) {
         // Reject the sign-in

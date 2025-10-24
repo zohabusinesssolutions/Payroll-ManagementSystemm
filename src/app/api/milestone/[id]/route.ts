@@ -2,8 +2,9 @@ import { milestoneSchema } from "@/app/adminspace/projects/milestones/dto";
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         const body = await request.json();
         const data = milestoneSchema.parse(body);
 
@@ -21,7 +22,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
             );
         }
 
-        await prisma.milestone.update({ where: { id: params.id }, data })
+        await prisma.milestone.update({ where: { id }, data })
         return NextResponse.json({
             message: "Milestone Updated",
         });
@@ -35,16 +36,15 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
 }
 
-type Params = {
-    params: {
-      id: string;
-    };
-  };
+type Params = Promise<{
+    id: string;
+}>;
   
-  export async function DELETE(_req: NextRequest, { params }: Params) {
+export async function DELETE(_req: NextRequest, { params }: { params: Params }) {
     try {
+      const { id } = await params;
       const milestone = await prisma.milestone.findUnique({
-        where: { id: params.id },
+        where: { id },
       });
   
       if (!milestone) {
@@ -54,7 +54,7 @@ type Params = {
         );
       }
   
-      await prisma.milestone.delete({ where: { id: params.id } });
+      await prisma.milestone.delete({ where: { id } });
   
       return NextResponse.json({
         message: "Milestone deleted successfully",
@@ -70,4 +70,4 @@ type Params = {
         { status: 500 }
       );
     }
-  }
+}

@@ -2,13 +2,14 @@ import { projectSchema } from "@/app/adminspace/projects/dto";
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         const body = await request.json();
         const data = projectSchema.parse(body);
 
         const project_exists = await prisma.project.findFirst({
-            where: { id: params.id }
+            where: { id }
         });
 
         if (!project_exists) {
@@ -18,7 +19,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
             );
         }
 
-        await prisma.project.update({ where: { id: params.id }, data })
+        await prisma.project.update({ where: { id }, data })
         return NextResponse.json({
             message: "Project Updated",
         });
@@ -32,11 +33,12 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
 
         const project_exists = await prisma.project.findFirst({
-            where: { id: params.id }
+            where: { id }
         });
 
         if (!project_exists) {
@@ -45,7 +47,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
                 { status: 404 }
             );
         }
-        await prisma.project.delete({ where: { id: params.id } });
+        await prisma.project.delete({ where: { id } });
         return NextResponse.json({
             message: "Project DELETED",
         });

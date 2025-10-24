@@ -2,12 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Calendar, Clock } from "lucide-react";
+import { CheckCircle, XCircle, Calendar } from "lucide-react";
 import moment from "moment";
 import { enumerateDaysBetweenDates } from "@/lib/common";
 import { AttendanceRecord, AttendanceStatus, User } from "./types";
@@ -29,33 +26,33 @@ const getStatusIcon = (status: AttendanceStatus) => {
 export default function AttendanceTable() {
   const [month, setMonth] = useState(moment());
   const [monthArray, setMonthArray] = useState(enumerateDaysBetweenDates(moment(month).startOf("month"), moment(month).endOf("month")));
-  const [users, setUsers] = useState<User[]>(initialUsers);
-  const [selectedRecord, setSelectedRecord] = useState<{
+  const [users] = useState<User[]>(initialUsers);
+  const [,setSelectedRecord] = useState<{
     userId: number;
     dateIndex: number;
     inTime: string;
     outTime: string;
   } | null>(null);
 
-  const handleUpdateAttendance = () => {
-    if (!selectedRecord) return;
+  // const handleUpdateAttendance = () => {
+  //   if (!selectedRecord) return;
 
-    setUsers((prevUsers) =>
-      prevUsers.map((user) => {
-        if (user.id === selectedRecord.userId) {
-          const updatedAttendance = [...user.attendance];
-          updatedAttendance[selectedRecord.dateIndex] = {
-            ...updatedAttendance[selectedRecord.dateIndex],
-            inTime: selectedRecord.inTime,
-            outTime: selectedRecord.outTime,
-          };
-          return { ...user, attendance: updatedAttendance };
-        }
-        return user;
-      })
-    );
-    setSelectedRecord(null);
-  };
+  //   setUsers((prevUsers) =>
+  //     prevUsers.map((user) => {
+  //       if (user.id === selectedRecord.userId) {
+  //         const updatedAttendance = [...user.attendance];
+  //         updatedAttendance[selectedRecord.dateIndex] = {
+  //           ...updatedAttendance[selectedRecord.dateIndex],
+  //           inTime: selectedRecord.inTime,
+  //           outTime: selectedRecord.outTime,
+  //         };
+  //         return { ...user, attendance: updatedAttendance };
+  //       }
+  //       return user;
+  //     })
+  //   );
+  //   setSelectedRecord(null);
+  // };
 
   const openPopover = (userId: number, dateIndex: number, record: AttendanceRecord) => {
     setSelectedRecord({
@@ -77,7 +74,7 @@ export default function AttendanceTable() {
         <p className="text-gray-600 mt-2">{moment(month).format("MMMM YYYY")} - Employee Attendance Record</p>
       </div>
       <AttendanceFilter
-        onSubmit={({ month: monthStr, search }) => {
+        onSubmit={({ month: monthStr }) => {
           setMonth(moment(monthStr, "YYYY-MM"));
         }}
         defaultMonth={month.toDate()}
@@ -107,7 +104,7 @@ export default function AttendanceTable() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-80">
-                        <AttendanceForm onSubmit={(e) => {}} userName={user.name} initialInTime={record.inTime} initialOutTime={record.outTime} date={record.date} />
+                        <AttendanceForm onSubmit={() => {}} userName={user.name} initialInTime={record.inTime} initialOutTime={record.outTime} date={record.date} />
                       </PopoverContent>
                     </Popover>
                   </TableCell>

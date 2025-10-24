@@ -21,7 +21,6 @@ import {
   IconDeviceLaptop,
   IconFolder,
   IconPin,
-  IconReceipt2,
   IconUserCog,
   IconUsersGroup,
   type Icon,

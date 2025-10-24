@@ -1,87 +1,59 @@
-import { employeeSchema } from "@/app/adminspace/human-resources/employees/dto";
+import { departmentSchema } from "@/app/adminspace/human-resources/department/dto";
 import prisma from "@/lib/prisma";
-import moment from "moment";
 import { NextRequest, NextResponse } from "next/server";
 
 
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         const body = await request.json();
-        const data = employeeSchema.parse(body);
+        const data = departmentSchema.parse(body);
 
-        const {
-            name,
-            email,
-            phoneNo,
-            cnicNo,
-            dateOfBirth,
-            maritalStatus,
-            address,
-            department,
-            designation,
-            startDate,
-            resignDate,
-            basicSalary,
-            fuelAllowance,
-            medicalAllowance,
-        } = data;
-
-        const user_exists = await prisma.user.findFirst({
-            where: { id: params.id, deletedAt: null },
-            select: { employee: { select: { id: true } } }
+        const department_exists = await prisma.department.findFirst({
+            where: { id },
         });
 
-        const employeeId = user_exists?.employee?.id;
-
-        if (!employeeId) {
+        if (!department_exists) {
             return NextResponse.json(
-                { error: "Employee with this ID does not exist" },
+                { error: "Department with this ID does not exist" },
                 { status: 404 }
             );
         }
 
-        await prisma.user.update({
-            where: { id: params.id },
+        // Update the department
+        await prisma.department.update({
+            where: { id },
             data: {
-                name,
-                email,
-                phoneNo,
-                cnicNo,
-                dateOfBirth: moment(dateOfBirth).toDate(),
-                maritalStatus,
-                address,
-                department: {
-                    connect: { id: department },
-                },
+                name: data.name,
+                description: data.description,
             },
         });
 
-        await prisma.employee.update({
-            where: { id: employeeId },
-            data: {
-                designation,
-                joiningDate: moment(startDate).toDate(),
-                resignDate: resignDate ? moment(resignDate).toDate() : null,
-                salary: {
-                    update: {
-                        where: { employeeId },
-                        data: {
-                            basicSalary,
-                            fuelAllowance,
-                            medicalAllowance,
-                            perDaySalary: basicSalary / 30,
-                        },
-                    },
-                },
-            },
-            include: {
-                user: { include: { department: true } },
-            },
-        });
+        // Handle permissions update
+        if (data.permissions) {
+            // Delete existing permissions
+            await prisma.permission.deleteMany({
+                where: { departmentId: id },
+            });
+
+            // Create new permissions
+            const permissionsToCreate = Object.entries(data.permissions).map(
+                ([model, access]) => ({
+                    departmentId: id,
+                    model: model,
+                    accessScope: access.accessScope,
+                    accessLevel: access.accessLevel,
+                })
+            );
+
+            await prisma.permission.createMany({
+                data: permissionsToCreate,
+            });
+        }
 
         return NextResponse.json({
-            message: "Employee Updated",
+            message: "Department Updated",
         });
     } catch (error) {
         return NextResponse.json(
@@ -94,29 +66,41 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 }
 
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         
-        const user_exists = await prisma.user.findFirst({
-            where: { id: params.id, deletedAt: null },
-            select: { employee: { select: { id: true } } }
+        const department_exists = await prisma.department.findFirst({
+            where: { id },
+            include: { users: true },
         });
 
-        const employeeId = user_exists?.employee?.id;
-
-        if (!employeeId) {
+        if (!department_exists) {
             return NextResponse.json(
-                { error: "Employee with this ID does not exist" },
+                { error: "Department with this ID does not exist" },
                 { status: 404 }
             );
         }
 
-        await prisma.user.delete({
-            where: { id: params.id }
+        if (department_exists.users && department_exists.users.length > 0) {
+            return NextResponse.json(
+                { error: "Cannot delete department with assigned users" },
+                { status: 400 }
+            );
+        }
+
+        // Delete permissions first
+        await prisma.permission.deleteMany({
+            where: { departmentId: id },
+        });
+
+        // Delete department
+        await prisma.department.delete({
+            where: { id },
         });
 
         return NextResponse.json({
-            message: "Employee DELETED",
+            message: "Department DELETED",
         });
     } catch (error) {
         return NextResponse.json(

@@ -184,7 +184,7 @@ export function AdminityDrawer({ config, trigger, open, onOpenChange, data, mode
     if (open) {
       form.reset(getDefaultValues())
     }
-  }, [open, data, mode])
+  }, [open, data, mode, form, getDefaultValues])
 
   // Watch for modeOfPayment changes and clear bank fields when set to Cash
   useEffect(() => {
@@ -251,7 +251,7 @@ export function AdminityDrawer({ config, trigger, open, onOpenChange, data, mode
     }
   }
 
-  const renderGroup = (group: FormGroupConfig, index: number) => (
+  const renderGroup = (group: FormGroupConfig) => (
     <div key={group.title} className="space-y-3">
       <div className="mb-4">
         <h3 className="text-base font-semibold text-gray-900 mb-1">{group.title}</h3>
@@ -297,7 +297,7 @@ export function AdminityDrawer({ config, trigger, open, onOpenChange, data, mode
       <form onSubmit={handleSubmit} className="flex flex-col h-full">
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {config.groups ? (
-            config.groups.map((group, index) => renderGroup(group, index))
+            config.groups.map((group) => renderGroup(group))
           ) : (
             <div className="grid gap-3">
               {config.fields?.map((field) => (

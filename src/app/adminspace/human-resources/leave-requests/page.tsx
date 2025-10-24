@@ -10,14 +10,14 @@ import { useRequest } from "ahooks";
 import { clientConfig, columns, ILeavesRequests } from "./dto";
 
 export default function ProjectPage() {
-  const { data, loading, refresh, runAsync } = useRequest(
+  const { data, loading, runAsync } = useRequest(
     apiService.project.get
   );
 
 
-  const { runAsync: editClient } = useRequest(apiService.project.update, {
-    manual: true,
-  });
+  // const { runAsync: editClient } = useRequest(apiService.project.update, {
+  //   manual: true,
+  // });
 
   // Define filters
   const filters: FilterConfig[] = [

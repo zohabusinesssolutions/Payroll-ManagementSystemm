@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = departmentSchema.parse(body);
 
-    const { name, description, isSuperAdmin, permissions } = data;
+    const { name } = data;
 
     const department_exists = await prisma.department.findFirst({
       where: { name: { equals: name, mode: "insensitive" } },
@@ -57,25 +57,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const permissionEntries = Object.entries(permissions).map(([model, value]) => ({
-      model,
-      accessScope: value.accessScope,
-      accessLevel: value.accessLevel,
-    }));
+    // const permissionEntries = Object.entries(permissions).map(([model, value]) => ({
+    //   model,
+    //   accessScope: value.accessScope,
+    //   accessLevel: value.accessLevel,
+    // }));
 
     // Create department and its permissions in one go
-    const department = await prisma.department.create({
-      data: {
-        name,
-        description,
-        permissions: {
-          create: permissionEntries,
-        },
-      },
-      include: {
-        permissions: true,
-      },
-    });
+    // const department = await prisma.department.create({
+    //   data: {
+    //     name,
+    //     description,
+    //     permissions: {
+    //       create: permissionEntries,
+    //     },
+    //   },
+    //   include: {
+    //     permissions: true,
+    //   },
+    // });
 
     return NextResponse.json({
       message: "Department Created",

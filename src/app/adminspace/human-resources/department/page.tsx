@@ -11,7 +11,7 @@ import { useState } from "react";
 import { columns, departmentConfig, type IDepartment } from "./dto";
 
 export default function DepartmentPage() {
-  const [selectedDepartment, setSelectedDepartment] =
+  const [, setSelectedDepartment] =
     useState<IDepartment | null>(null);
   const [drawerMode, setDrawerMode] = useState<"create" | "edit">("create");
 

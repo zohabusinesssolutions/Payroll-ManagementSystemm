@@ -1,13 +1,12 @@
 import { ClientSchema } from "@/app/adminspace/clients/dto";
-import { employeeSchema } from "@/app/adminspace/human-resources/employees/dto";
 import prisma from "@/lib/prisma";
-import moment from "moment";
 import { NextRequest, NextResponse } from "next/server";
 
 
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         const body = await request.json();
         const data = ClientSchema.parse(body);
 
@@ -23,14 +22,14 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
             );
         }
 
-        if (client_exists && params.id != client_exists!.id) {
+        if (client_exists && id != client_exists!.id) {
             return NextResponse.json(
                 { message: "Other client with this email already exists", success: false },
                 { status: 409 }
             );
         }
 
-        await prisma.client.update({ where: { id: params.id }, data })
+        await prisma.client.update({ where: { id }, data })
         return NextResponse.json({
             message: "Client Updated",
         });
@@ -45,11 +44,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 }
 
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        request.url
+        const { id } = await params;
         const client_exists = await prisma.client.findFirst({
-            where: { id: params.id },
+            where: { id },
             include: { projectToClient: true }
         });
 
@@ -68,7 +67,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         }
 
 
-        await prisma.client.delete({ where: { id: params.id } });
+        await prisma.client.delete({ where: { id } });
 
         return NextResponse.json({
             message: "Client DELETED",

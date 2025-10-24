@@ -467,7 +467,7 @@ export default function PayrollPage() {
             />
             {bankNameSearchQuery && (
               <div className="text-sm text-blue-600">
-                Filter: Employees with bank name containing "{bankNameSearchQuery}"
+                Filter: Employees with bank name containing &quot;{bankNameSearchQuery}&quot;
               </div>
             )}
           </div>

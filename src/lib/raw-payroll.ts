@@ -56,6 +56,7 @@ export async function calculateRawPayroll(
       });
       fuelRate = fuelRateSetting ? parseFloat(fuelRateSetting.value) : 300; // Default to 300
     } catch (error) {
+      console.log(error);
       fuelRate = 300; // Default fallback
     }
 

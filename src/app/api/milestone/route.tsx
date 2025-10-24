@@ -1,4 +1,3 @@
-import { projectSchema } from "@/app/adminspace/projects/dto";
 import { milestoneSchema } from "@/app/adminspace/projects/milestones/dto";
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
